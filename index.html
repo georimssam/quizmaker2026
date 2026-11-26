@@ -114,6 +114,21 @@ textarea.inp{resize:vertical;min-height:72px;line-height:1.55}
 .helper{text-align:left}
 .helper .w-ico,.helper h2,.helper>p{text-align:center}
 .pin-badge{flex:none;font-weight:900;font-size:13px;color:var(--muted);background:var(--paper2);padding:6px 9px;border-radius:10px;font-variant-numeric:tabular-nums}
+.class-bar{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:14px 16px;margin-bottom:8px;color:#fff}
+.cb-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.cb-head small{color:rgba(255,255,255,.7);font-size:13px}
+.cls-list{display:flex;flex-wrap:wrap;gap:8px}
+.cls{display:flex;align-items:stretch;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.1);border:2px solid transparent;color:#fff}
+.cls.on{background:var(--paper);border-color:var(--gold);color:var(--ink)}
+.cls-main{border:0;background:transparent;text-align:left;padding:8px 12px;color:inherit;min-width:110px}
+.cls-main:hover:not(:disabled){background:rgba(255,255,255,.12)}
+.cls-main:disabled{cursor:default;opacity:1}
+.cls-main b{display:block;font-family:var(--display);font-weight:400;font-size:19px;line-height:1.2}
+.cls-main small{font-size:11.5px;opacity:.75}
+.cls-del{border:0;background:rgba(0,0,0,.12);padding:0 10px;font-size:14px;color:inherit}
+.cls-del:hover:not(:disabled){background:var(--coral);color:#fff}
+.cls-del:disabled{opacity:.3;cursor:not-allowed}
+.cls-empty{margin:0;color:rgba(255,255,255,.75);font-size:14px}
 .pin-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
 .pin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
 .pin-slip{border:2px dashed #c9bb98;border-radius:14px;padding:14px;text-align:center;background:#fff}
@@ -591,13 +606,14 @@ table.rank td.total{font-family:var(--display);font-size:22px}
  * 교사 비밀번호는 아래 한 줄만 바꾸면 됩니다. (학생 화면 소스에는 들어가지 않아요)
  */
 const TEACHER_PASSWORD = 'geodalrim';
-const SERVER_VERSION = 3;   // 화면(HTML)이 이 번호로 Code.gs가 최신인지 확인해요
+const SERVER_VERSION = 4;   // 화면(HTML)이 이 번호로 Code.gs가 최신인지 확인해요
 
 const TRIES = { ox: 1, mc: 2, short: 3, code: 3 };   // 문제 유형별 정답 기회
 const TZ = 'Asia/Seoul';
 const SH = {
   config:    ['설정',     ['항목', '값']],
   games:     ['게임목록', ['게임ID', '학급', '게임 이름', '출제 방식', '모둠 수', '만든 시각']],
+  classes:   ['학급', ['학급', '게임ID', '게임 이름', '선생님', '진행 단계', '마지막 사용', '설정(JSON) — 직접 고치지 마세요']],
   questions: ['문제',     ['게임ID', '모둠ID', '모둠', '담당', '방 이름', '방 이야기', '번호', '문제ID', '유형', '문제',
                            '보기1', '보기2', '보기3', '보기4', '정답', '힌트', '점수', '이미지', '제출 시각']],
   images:    ['이미지',   ['게임ID', '모둠ID', '문제ID', '이미지 데이터']],
@@ -706,7 +722,47 @@ const ACTIONS = {
         g.pin = old && old.pin ? old.pin : newCode();
       });
       putConfig(cfg);
-      return { config: cfg };
+      return { config: cfg, classes: listClasses() };
+    });
+  },
+  /** 저장된 학급 목록 */
+  listClasses(req) { needTeacher(req); return { classes: listClasses() }; },
+  /** 저장된 학급으로 바꾸기: 그 학급의 모둠·문제·점수·입장 코드가 그대로 돌아와요 */
+  switchClass(req) {
+    needTeacher(req);
+    return withLock(() => {
+      const row = rowsOf(getSheet('classes'), 7).find(r => String(r[0]) === String(req.klass));
+      if (!row) throw new Error('저장된 학급을 찾을 수 없어요');
+      const cfg = JSON.parse(String(row[6]));
+      if (cfg.timer && cfg.timer.running) {               // 다른 반 타이머는 멈춘 상태로 가져와요
+        cfg.timer.remaining = Math.max(0, (cfg.timer.endAt - Date.now()) / 1000);
+        cfg.timer.running = false;
+      }
+      if (!cfg.joinCode) cfg.joinCode = newCode();
+      cfg.groups.forEach(g => { if (!g.pin) g.pin = newCode(); });
+      putConfig(cfg);
+      return { config: cfg, classes: listClasses() };
+    });
+  },
+  /** 저장된 학급 지우기 (purge면 그 학급의 문제·사진·풀이 기록도 지워요. 점수판 탭은 남겨요) */
+  deleteClass(req) {
+    needTeacher(req);
+    return withLock(() => {
+      const cur = getConfig();
+      const sh = getSheet('classes');
+      const row = rowsOf(sh, 7).find(r => String(r[0]) === String(req.klass));
+      if (!row) throw new Error('저장된 학급을 찾을 수 없어요');
+      if (cur && String(row[1]) === cur.gameId) throw new Error('지금 사용 중인 학급은 지울 수 없어요. 다른 학급으로 바꾼 뒤 지워 주세요');
+      const gid = String(row[1]);
+      deleteWhere(sh, 7, r => String(r[0]) === String(req.klass));
+      if (req.purge) {
+        deleteWhere(getSheet('questions'), SH.questions[1].length, r => String(r[0]) === gid);
+        deleteWhere(getSheet('images'), 4, r => String(r[0]) === gid);
+        deleteWhere(getSheet('records'), SH.records[1].length, r => String(r[0]) === gid);
+        setProp('roomsRev:' + gid, String(Number(getProp('roomsRev:' + gid) || 0) + 1));
+        bumpRecs(gid);
+      }
+      return { classes: listClasses() };
     });
   },
   newGame(req) {
@@ -722,7 +778,7 @@ const ACTIONS = {
       cfg.phase = 'setup';
       cfg.timer = { total: cfg.settings.makeMin * 60, remaining: cfg.settings.makeMin * 60, running: false, endAt: 0 };
       putConfig(cfg);
-      return { config: cfg };
+      return { config: cfg, classes: listClasses() };
     });
   },
   submitRoom: submitRoom,
@@ -824,6 +880,7 @@ function getState(req) {
   if (teacher) {
     if (fresh) out.rooms = rooms;
     out.records = recs;
+    out.classes = listClasses();
     try { out.appUrl = ScriptApp.getService().getUrl(); } catch (e) {}   // QR 코드에 넣을 웹 앱 주소
     if (getProp('dirty:' + gid)) {                    // 점수가 바뀌었으면 학급 점수판 탭에 기록
       const lock = LockService.getScriptLock();
@@ -1092,6 +1149,21 @@ function putConfig(cfg) {
   const row = [cfg.gameId, txt(cfg.klass || ''), txt(cfg.title || ''), cfg.mode === 'topic' ? '주제별' : '대륙별', cfg.groups.length, fmtTime(cfg.createdAt)];
   const i = rowsOf(gs, W).findIndex(r => String(r[0]) === cfg.gameId);
   if (i >= 0) gs.getRange(i + 2, 1, 1, W).setValues([row]); else appendRows(gs, [row]);
+  saveClassRow(cfg);
+}
+/** '학급' 탭: 학급 이름마다 한 줄, 그 학급의 마지막 게임 설정을 저장해요 */
+function saveClassRow(cfg) {
+  const sh = getSheet('classes'), W = 7, k = String(cfg.klass || '').trim();
+  deleteWhere(sh, W, r => String(r[1]) === cfg.gameId && String(r[0]) !== k);   // 학급 이름을 바꾸면 예전 이름 줄은 지워요
+  if (!k) return;
+  const row = [txt(k), cfg.gameId, txt(cfg.title || ''), txt(cfg.teacher || ''), PHASE[cfg.phase] || '', fmtTime(Date.now()), JSON.stringify(cfg)];
+  const i = rowsOf(sh, W).findIndex(r => String(r[0]) === k);
+  if (i >= 0) sh.getRange(i + 2, 1, 1, W).setValues([row]); else appendRows(sh, [row]);
+}
+function listClasses() {
+  return rowsOf(getSheet('classes'), 7).filter(r => String(r[0])).map(r => ({
+    klass: String(r[0]), gameId: String(r[1]), title: String(r[2]), teacher: String(r[3]), phase: String(r[4]), at: String(r[5])
+  })).sort((a, b) => a.klass.localeCompare(b.klass, 'ko', { numeric: true }));
 }
 function cleanConfig(c) {
   c = c || {};
@@ -1210,7 +1282,7 @@ function fmtTime(ms) { return Utilities.formatDate(new Date(ms), TZ, 'yyyy-MM-dd
 // 선생님 화면의 '🔧 설정 도우미'에서 Apps Script 웹 앱 주소(…/exec)를 넣으면 되고,
 // 학생 기기는 QR 코드에 담긴 주소로 자동 연결돼요. (원하면 여기에 기본 주소를 적어 둘 수도 있어요)
 const API_URL = '';
-const NEED_SERVER_V = 3;   // 이 화면에 맞는 Code.gs 버전
+const NEED_SERVER_V = 4;   // 이 화면에 맞는 Code.gs 버전
 
 const CONTINENTS=[
   {key:'asia',name:'아시아',emoji:'🐼',color:'#ef476f'},{key:'europe',name:'유럽',emoji:'🏰',color:'#3a86ff'},
@@ -1342,6 +1414,7 @@ function applyState(r){
   let draftLoaded=false;
   if(r.myRoom){MYSERVER=r.myRoom;ROOMS_REV=r.roomsRev;ROOMS_KEY=g+r.config.phase;if(!getDraft()){putDraft(Object.assign(clone(r.myRoom),{_dirty:false,_base:r.myRoom.questions.map(q=>q.id)}));draftLoaded=true}}
   if(r.records)RECS=r.records;
+  if(r.classes)CLASSES=r.classes;
   if(r.myRecords)MYRECS=r.myRecords;
   // 학생: 선생님이 단계를 바꾸면 화면 이동
   if(!isT()&&prevPhase&&prevPhase!==CFG.phase){
@@ -1349,7 +1422,7 @@ function applyState(r){
     if(CFG.phase!=='setup'||VIEW!=='setup'){VIEW=CFG.phase==='setup'?'setup':CFG.phase;lsSet('gem.view',VIEW);UI.room=null}
     toast(msg,'good');sfx.right();LAST_SIG='';render();return;
   }
-  const sig=JSON.stringify([CFG.phase,CFG.rev,STATUS,SCORES,ROOMS_REV,RECS,MYRECS,!!MYSERVER]);
+  const sig=JSON.stringify([CFG.phase,CFG.rev,STATUS,SCORES,ROOMS_REV,RECS,MYRECS,!!MYSERVER,CLASSES]);
   if(firstLoad||draftLoaded){firstLoad=false;LAST_SIG=sig;render();return}
   if(sig===LAST_SIG)return;
   LAST_SIG=sig;smartRender();
@@ -1364,7 +1437,7 @@ function smartRender(){
   render();
 }
 function patch(name,fn){document.querySelectorAll(`[data-live="${name}"]`).forEach(el=>{el.innerHTML=fn();});loadImages()}
-function patchLive(){patch('sb',sbInner);patch('gtabs',gtabsInner);patch('status',statusInner);patch('pick',pickInner);patch('matrix',matrixInner);patch('rooms',roomsInner)}
+function patchLive(){patch('classes',classesInner);patch('sb',sbInner);patch('gtabs',gtabsInner);patch('status',statusInner);patch('pick',pickInner);patch('matrix',matrixInner);patch('rooms',roomsInner)}
 
 let pollT,pollGen=0;
 function startPolling(){clearTimeout(pollT);const gen=++pollGen;const loop=async()=>{if(gen!==pollGen)return;if(!document.hidden&&ROLE)await refresh();if(gen===pollGen)pollT=setTimeout(loop,isT()?4000:5000+Math.random()*1500)};pollT=setTimeout(loop,isT()?4000:5000)}
@@ -1382,6 +1455,7 @@ async function saveCfgNow(){
   saveT=null;if(!isT()||!CFG)return;SAVING=true;
   try{const r=await call('saveConfig',{config:CFG});const hadCode=CFG.joinCode;CFG.gameId=r.config.gameId;CFG.rev=r.config.rev;CFG.createdAt=r.config.createdAt;CFG.joinCode=r.config.joinCode;NET.ok=true;
     CFG.groups.forEach(g=>{const s=r.config.groups.find(x=>x.id===g.id);if(s)g.pin=s.pin});
+    if(r.classes){CLASSES=r.classes;patch('classes',classesInner)}
     if(!hadCode&&CFG.joinCode){LAST_SIG='';render()}}
   catch(e){NET.ok=false;toast('저장하지 못했어요: '+e.message,'bad')}
   SAVING=false;updateChrome();
@@ -1598,7 +1672,7 @@ function openMenu(){
       <button onclick="closeModal();openBigTimer()"><span>⏱️</span><div>타이머 크게 보기<small>프로젝터 화면용</small></div></button>
       <button onclick="saveScoresNow()"><span>📊</span><div>점수판 시트에 지금 기록<small>‘점수판_${esc(CFG.klass||'학급미지정')}’ 탭 (점수가 바뀌면 자동으로도 기록돼요)</small></div></button>
       <button onclick="closeModal();loadDemo()"><span>🎮</span><div>예시 방 4개 넣기<small>1~4모둠에 예시 문제를 넣어 흐름을 체험해요</small></div></button>
-      <button onclick="newGameAsk()"><span>🆕</span><div>새 게임 시작 (다른 반)<small>설정은 그대로, 문제·풀이는 새로 시작해요. 지난 점수 기록은 시트에 남아요</small></div></button>
+      <button onclick="closeModal();goView('setup')"><span>📚</span><div>학급 바꾸기 · 새 학급<small>1번 탭 맨 위 ‘저장된 학급’에서 반을 고르거나 새로 만들어요</small></div></button>
       <button class="danger" onclick="resetPlayAsk()"><span>🧹</span><div>이번 게임 풀이 기록 지우기<small>문제는 두고 점수·별점·풀이를 지워요</small></div></button>`
     :`<button onclick="closeModal();goView('setup')"><span>👥</span><div>우리 모둠 다시 고르기</div></button>
       <button onclick="closeModal();CODE='';lsDel('gem.code');CFG=null;firstLoad=true;render()"><span>🔑</span><div>입장 코드 다시 입력하기</div></button>`}
@@ -1607,14 +1681,61 @@ function openMenu(){
   </div>`);
 }
 async function saveScoresNow(){try{await call('saveScores',{});toast('📊 점수판 탭에 기록했어요','good')}catch(e){toast(e.message,'bad')}}
-function newGameAsk(){
-  openModal(`<h3>🆕 새 게임을 시작할까요?</h3><p>지금 게임의 문제와 점수 기록은 구글 시트에 그대로 남아요. 새 게임은 1단계(준비)부터 시작하고, 학생들은 모둠을 다시 골라야 해요.</p>
-  <label class="lb">새 학급 이름</label><input class="inp" id="ng-klass" value="${esc(CFG.klass)}" placeholder="예: 1학년 4반">
-  <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn ghost" onclick="closeModal()">취소</button><button class="btn gold" onclick="newGame()">새 게임 시작</button></div>`)}
-async function newGame(){
-  const c=clone(CFG);c.klass=$('#ng-klass').value.trim();
-  try{const r=await call('newGame',{config:c});CFG=r.config;ROOMS={};RECS=[];TDRAFT={};SCORES=[];STATUS={};ROOMS_REV=-1;ROOMS_KEY='';resetUI();UI.room=null;UI.awards=0;closeModal();VIEW='setup';lsSet('gem.view','setup');LAST_SIG='';render();refresh();toast('🆕 새 게임을 만들었어요','good')}
-  catch(e){toast(e.message,'bad')}
+/* ================= 저장된 학급 ================= */
+let CLASSES=[];
+function classBar(){
+  return `<section class="class-bar"><div class="cb-head"><span class="eyebrow">📚 저장된 학급</span>
+      <small>학급을 누르면 그 반의 모둠·문제·점수·입장 코드로 바뀌어요. 같은 링크로 여러 반에서 쓸 수 있어요.</small>
+      <span class="sp"></span><button class="btn gold sm" onclick="newClassAsk()">＋ 새 학급</button></div>
+    <div class="cls-list" data-live="classes">${classesInner()}</div></section>`;
+}
+function classesInner(){
+  if(!CLASSES.length)return `<p class="cls-empty">아직 저장된 학급이 없어요. 아래 <b>기본 정보</b>에 학급 이름을 넣으면 여기에 저장돼요.</p>`;
+  return CLASSES.map((c,i)=>{const on=CFG&&c.gameId===CFG.gameId;
+    return `<div class="cls ${on?'on':''}"><button class="cls-main" onclick="switchClass(${i})" ${on?'disabled':''} title="${on?'지금 사용 중':esc(c.klass)+'으로 바꾸기'}">
+      <b>${esc(c.klass)}</b><small>${on?'✔ 지금 사용 중':esc(c.phase||'준비')}${c.at?' · '+esc(c.at.slice(5,16).replace('-','/')):''}</small></button>
+      <button class="cls-del" onclick="deleteClassAsk(${i})" title="${on?'사용 중인 학급은 지울 수 없어요':'학급 지우기'}" ${on?'disabled':''}>🗑</button></div>`}).join('');
+}
+async function flushSave(){if(saveT){clearTimeout(saveT);saveT=null;await saveCfgNow()}}
+function afterGameChange(r,msg){
+  CFG=r.config;if(r.classes)CLASSES=r.classes;
+  ROOMS={};RECS=[];TDRAFT={};SCORES=[];STATUS={};ROOMS_REV=-1;ROOMS_KEY='';resetUI();UI.room=null;UI.awards=0;UI.makeSel=null;
+  VIEW='setup';lsSet('gem.view','setup');LAST_SIG='';render();refresh();scrollTo({top:0,behavior:'smooth'});toast(msg,'good');
+}
+async function switchClass(i){
+  const c=CLASSES[i];if(!c)return;
+  if(!confirm(`‘${c.klass}’ 학급으로 바꿀까요?\n\n지금 학급(${CFG.klass||'이름 없음'})의 내용은 그대로 저장돼 있어요.\n바꾸면 학생들은 그 반의 입장 코드로 들어와야 해요.`))return;
+  try{await flushSave();const r=await call('switchClass',{klass:c.klass});afterGameChange(r,`📚 ${c.klass} 학급으로 바꿨어요`)}catch(e){toast(e.message,'bad')}
+}
+function newClassAsk(){
+  openModal(`<h3>＋ 새 학급</h3><p>지금 쓰는 출제 방식·모둠·규칙을 그대로 가져와서 새 학급을 만들어요. 문제·점수는 새로 시작하고, 입장 코드와 모둠 비밀번호도 새로 생겨요.<br>지금 학급(${esc(CFG.klass||'이름 없음')})은 그대로 저장돼 있어요.</p>
+  <label class="lb">새 학급 이름</label><input class="inp" id="ng-klass" placeholder="예: 1학년 6반" onkeydown="if(event.key==='Enter')newClass()">
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn ghost" onclick="closeModal()">취소</button><button class="btn gold" onclick="newClass()">새 학급 만들기</button></div>`);
+  setTimeout(()=>{const i=$('#ng-klass');if(i)i.focus()},50);
+}
+const newGameAsk=newClassAsk;
+async function newClass(){
+  const name=$('#ng-klass').value.trim();if(!name)return toast('학급 이름을 넣어 주세요');
+  const ex=CLASSES.findIndex(c=>c.klass===name);
+  if(ex>=0){closeModal();if(CLASSES[ex].gameId===CFG.gameId)return toast('지금 사용 중인 학급이에요');return switchClass(ex)}
+  try{await flushSave();const c=clone(CFG);c.klass=name;const r=await call('newGame',{config:c});closeModal();afterGameChange(r,`＋ ${name} 학급을 만들었어요`)}catch(e){toast(e.message,'bad')}
+}
+function deleteClassAsk(i){
+  const c=CLASSES[i];if(!c)return;
+  openModal(`<h3>🗑 ‘${esc(c.klass)}’ 학급을 지울까요?</h3><p>저장된 학급 목록에서 빠져요. <b>점수판_${esc(c.klass)}</b> 탭의 점수 기록은 시트에 그대로 남아요.</p>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:700;margin-bottom:14px"><input type="checkbox" id="purge-cls"> 이 학급의 문제·사진·풀이 기록도 시트에서 지우기 (되돌릴 수 없어요)</label>
+    <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn ghost" onclick="closeModal()">취소</button><button class="btn coral" onclick="deleteClass(${i})">지우기</button></div>`);
+}
+async function deleteClass(i){
+  const c=CLASSES[i];const purge=!!($('#purge-cls')&&$('#purge-cls').checked);
+  try{const r=await call('deleteClass',{klass:c.klass,purge});CLASSES=r.classes;closeModal();patch('classes',classesInner);toast(`🗑 ${c.klass} 학급을 지웠어요`,'good')}catch(e){toast(e.message,'bad')}
+}
+/* 학급 이름 칸: 다 쓰고 나서(칸을 벗어날 때) 저장. 이미 있는 학급 이름이면 그 학급으로 바꿀지 물어봐요 */
+function setKlass(el){
+  const v=el.value.trim(),prev=CFG.klass;if(v===prev)return;
+  const ex=CLASSES.findIndex(c=>c.klass===v&&c.gameId!==CFG.gameId);
+  if(ex>=0){el.value=prev;if(confirm(`‘${v}’ 학급은 이미 저장돼 있어요. 그 학급으로 바꿀까요?\n(지금 학급 이름은 그대로 둬요)`))switchClass(ex);return}
+  CFG.klass=v;saveCfg(true);
 }
 function resetPlayAsk(){openModal(`<h3>🧹 풀이 기록을 지울까요?</h3><p>이번 게임의 점수·별점·풀이 기록이 모두 지워져요. 문제는 그대로 남아요. 되돌릴 수 없어요.</p>
   <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn ghost" onclick="closeModal()">취소</button><button class="btn coral" onclick="resetPlay()">지우기</button></div>`)}
@@ -1624,6 +1745,7 @@ async function resetPlay(){try{await call('resetPlay',{});closeModal();UI.awards
 function tSetup(){
   const st=CFG.settings,T=targets(CFG.mode);
   return `<div class="page">
+  ${classBar()}
   <section class="hero"><div>
       <span class="eyebrow">STEP 1 · 게임 준비 (선생님 화면)</span>
       <h1>오늘의 <em>지리 방탈출</em>을<br>함께 정해요</h1>
@@ -1636,7 +1758,7 @@ function tSetup(){
     <section class="card"><h2>📝 기본 정보</h2>
       <label class="lb">게임 이름</label><input class="inp" value="${esc(CFG.title)}" oninput="CFG.title=this.value;saveCfg()">
       <div class="two-col">
-        <div><label class="lb">학급 (점수판 탭 이름)</label><input class="inp" placeholder="예: 1학년 5반" value="${esc(CFG.klass)}" oninput="CFG.klass=this.value;saveCfg()"></div>
+        <div><label class="lb">학급 (점수판 탭 이름)</label><input class="inp" placeholder="예: 1학년 5반" value="${esc(CFG.klass)}" onchange="setKlass(this)" onkeydown="if(event.key==='Enter')this.blur()"></div>
         <div><label class="lb">선생님 이름 (상장용)</label><input class="inp" placeholder="예: 이해림" value="${esc(CFG.teacher)}" oninput="CFG.teacher=this.value;saveCfg()"></div>
       </div>
       <p class="help">상장에는 “${esc(CFG.klass||'1학년 5반')}${josa(CFG.klass||'1학년 5반','을','를')} 아끼는 ${esc(CFG.teacher||'이해림')} 선생님”으로 들어가요.</p><div>
