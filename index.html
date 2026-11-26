@@ -113,6 +113,20 @@ textarea.inp{resize:vertical;min-height:72px;line-height:1.55}
 .shake{animation:shake .45s}
 .helper{text-align:left}
 .helper .w-ico,.helper h2,.helper>p{text-align:center}
+.pin-badge{flex:none;font-weight:900;font-size:13px;color:var(--muted);background:var(--paper2);padding:6px 9px;border-radius:10px;font-variant-numeric:tabular-nums}
+.pin-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.pin-slip{border:2px dashed #c9bb98;border-radius:14px;padding:14px;text-align:center;background:#fff}
+.ps-g{font-family:var(--display);font-size:24px}
+.ps-t{color:var(--muted);font-size:13px}
+.ps-pin{font-family:var(--display);font-size:44px;letter-spacing:.2em;color:#3a2600;margin:4px 0}
+.ps-help{font-size:11.5px;color:var(--muted)}
+.fresh{display:block;margin-top:4px;color:#0f7a63;font-weight:900;font-size:13px}
+.ord-list{display:grid;gap:6px;max-height:55vh;overflow:auto}
+.ord-row{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--line);border-radius:12px;padding:6px 8px}
+.ord-no{font-family:var(--display);width:28px;height:28px;border-radius:50%;background:var(--gold);display:grid;place-items:center;flex:none}
+.ord-txt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+.ord-row .mini:disabled{opacity:.3}
 .stu-note{background:#e7f5ff;color:#1864ab;border-radius:14px;padding:10px 14px;font-size:14px;margin-bottom:16px;text-align:center}
 .helper-steps{list-style:none;counter-reset:hs;margin:0;padding:0;display:grid;gap:10px}
 .helper-steps li{counter-increment:hs;position:relative;background:#fff;border:2px solid var(--line);border-radius:18px;padding:14px 16px 14px 58px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
@@ -558,7 +572,7 @@ table.rank td.total{font-family:var(--display);font-size:22px}
  * 교사 비밀번호는 아래 한 줄만 바꾸면 됩니다. (학생 화면 소스에는 들어가지 않아요)
  */
 const TEACHER_PASSWORD = 'geodalrim';
-const SERVER_VERSION = 2;   // 화면(HTML)이 이 번호로 Code.gs가 최신인지 확인해요
+const SERVER_VERSION = 3;   // 화면(HTML)이 이 번호로 Code.gs가 최신인지 확인해요
 
 const TRIES = { ox: 1, mc: 2, short: 3, code: 3 };   // 문제 유형별 정답 기회
 const TZ = 'Asia/Seoul';
@@ -632,6 +646,23 @@ const ACTIONS = {
     if (!codeOk(cfg, req)) throw new Error('입장 코드가 맞지 않아요');
     return { title: cfg.title, klass: cfg.klass };
   },
+  /** 모둠 입장: 모둠 비밀번호 확인 */
+  joinGroup(req) {
+    const cfg = needConfig();
+    needCode(cfg, req);
+    needGroup(cfg, req);
+    return {};
+  },
+  /** 교사: 모둠 비밀번호 새로 만들기 (group 없으면 모든 모둠) */
+  newGroupPin(req) {
+    needTeacher(req);
+    return withLock(() => {
+      const cfg = needConfig();
+      cfg.groups.forEach(g => { if (!req.group || g.id === req.group) g.pin = newCode(g.pin); });
+      putConfig(cfg);
+      return { config: cfg };
+    });
+  },
   newCode(req) {
     needTeacher(req);
     return withLock(() => {
@@ -651,6 +682,10 @@ const ACTIONS = {
       cfg.createdAt = cur ? cur.createdAt : Date.now();
       cfg.rev = cur ? cur.rev : 0;
       cfg.joinCode = cur && cur.joinCode ? cur.joinCode : newCode();
+      cfg.groups.forEach(g => {                         // 모둠 비밀번호는 서버에 있는 것을 유지, 새 모둠만 새로 만들어요
+        const old = cur && cur.groups.find(x => x.id === g.id);
+        g.pin = old && old.pin ? old.pin : newCode();
+      });
       putConfig(cfg);
       return { config: cfg };
     });
@@ -661,6 +696,7 @@ const ACTIONS = {
       const old = getConfig();
       const cfg = cleanConfig(req.config);
       cfg.joinCode = newCode(old && old.joinCode);    // 새 게임(다른 반)은 새 입장 코드
+      cfg.groups.forEach(g => { g.pin = newCode(); });  // 모둠 비밀번호도 새로
       cfg.gameId = newId('G');
       cfg.createdAt = Date.now();
       cfg.rev = 0;
@@ -675,7 +711,7 @@ const ACTIONS = {
   rate(req) {
     const cfg = needConfig();
     const teacher = isTeacher(req);
-    if (!teacher) needCode(cfg, req);
+    if (!teacher) { needCode(cfg, req); needGroup(cfg, req); }
     if (!teacher && cfg.phase !== 'play') throw new Error('지금은 별점을 줄 수 없어요');
     const rater = teacher ? 'teacher' : String(req.group || '');
     if (!teacher && !findGroup(cfg, rater)) throw new Error('모둠을 먼저 골라 주세요');
@@ -725,7 +761,7 @@ const ACTIONS = {
     const cfg = needConfig();
     withLock(() => {
       deleteWhere(getSheet('records'), SH.records[1].length, r => String(r[0]) === cfg.gameId);
-      cache().remove('recs:' + cfg.gameId);
+      bumpRecs(cfg.gameId);
       setProp('dirty:' + cfg.gameId, '1');
     });
     return {};
@@ -764,7 +800,7 @@ function getState(req) {
     const r = rooms[g.id];
     status[g.id] = { count: r ? r.questions.length : 0, at: r ? r.submittedAt : '' };
   });
-  const out = { config: cfg, status: status, scores: computeScores(cfg, recs), roomsRev: roomsRev };
+  const out = { config: teacher ? cfg : publicConfig(cfg), status: status, scores: computeScores(cfg, recs), roomsRev: roomsRev };
   const fresh = Number(req.roomsRev) !== roomsRev || req.roomsFor !== (req.group || '') + cfg.phase;
   if (teacher) {
     if (fresh) out.rooms = rooms;
@@ -777,7 +813,8 @@ function getState(req) {
       }
     }
   } else {
-    const g = String(req.group || '');
+    let g = String(req.group || '');
+    if (g && !groupOk(cfg, req)) { out.badGroup = true; g = ''; }   // 모둠 비밀번호가 틀리면 그 모둠 내용은 안 보여 줘요
     if (cfg.phase === 'setup' || cfg.phase === 'make') {
       if (fresh && g && rooms[g]) out.myRoom = rooms[g];
     } else if (fresh) {
@@ -799,13 +836,15 @@ function getState(req) {
 function submitRoom(req) {
   const cfg = needConfig();
   const teacher = isTeacher(req);
-  if (!teacher) needCode(cfg, req);
+  if (!teacher) { needCode(cfg, req); needGroup(cfg, req); }
   if (!teacher && cfg.phase !== 'make') throw new Error(cfg.phase === 'setup' ? '아직 출제 시간이 아니에요' : '출제가 마감되어 더 이상 보낼 수 없어요');
   const g = findGroup(cfg, req.group);
   if (!g) throw new Error('모둠을 찾을 수 없어요');
   const room = req.room || {};
   const qs = (room.questions || []).slice(0, 30);
-  if (!qs.length) throw new Error('자물쇠(문제)가 하나도 없어요');
+  // base: 이 기기가 마지막으로 불러오거나 보낸 시점에 시트에 있던 자물쇠 ID들 (여러 기기 합치기용)
+  const base = Array.isArray(req.base) ? req.base.map(String) : null;
+  if (!qs.length && !base) throw new Error('자물쇠(문제)가 하나도 없어요');
   qs.forEach((q, i) => {
     q.id = safeId(q.id) || newId('q');
     if (!TYPE_KO[q.type]) q.type = 'short';
@@ -816,6 +855,12 @@ function submitRoom(req) {
   });
   return withLock(() => {
     const now = fmtTime(Date.now());
+    const prev = loadRooms(cfg.gameId)[g.id] || { title: '', story: '', questions: [] };
+    const final = mergeQuestions(prev.questions, qs, base);
+    if (!final.length) throw new Error('자물쇠(문제)가 하나도 없어요');
+    if (final.length > 30) throw new Error('자물쇠는 모둠당 30개까지 만들 수 있어요');
+    const title = String(room.title || '').trim() ? String(room.title) : prev.title;
+    const story = String(room.story || '').trim() ? String(room.story) : prev.story;
     const qsh = getSheet('questions'), ish = getSheet('images');
     const mine = r => String(r[0]) === cfg.gameId && String(r[1]) === g.id;
     const oldImg = {};
@@ -823,28 +868,48 @@ function submitRoom(req) {
     deleteWhere(qsh, SH.questions[1].length, mine);
     deleteWhere(ish, 4, mine);
     const imgRows = [];
-    const rows = qs.map((q, i) => {
+    const outQs = [];
+    const rows = final.map((q, i) => {
       let img = String(q.image || '');
       if (img.indexOf('data:') === 0) { imgRows.push([cfg.gameId, g.id, q.id, img]); img = '@img'; }
       else if (img === '@img') { if (oldImg[q.id]) imgRows.push([cfg.gameId, g.id, q.id, oldImg[q.id]]); else img = ''; }
-      cache().remove('img:' + cfg.gameId + ':' + q.id);
-      const opts = (q.options || []).concat(['', '', '', '']).slice(0, 4).map(o => txt(String(o || '')));
-      return [cfg.gameId, g.id, g.name, targetName(g), txt(String(room.title || '')), txt(String(room.story || '')), i + 1, q.id,
-        q.type, txt(String(q.prompt || ''))].concat(opts, [txt(String(q.answer)), txt(String(q.hint || '')),
-        q.points === '' || q.points == null ? '' : (Number(q.points) || ''), img, now]);
+      if (String(q.image || '').indexOf('data:') === 0) cache().remove('img:' + cfg.gameId + ':' + q.id);
+      const optsRaw = (q.options || []).concat(['', '', '', '']).slice(0, 4).map(o => String(o == null ? '' : o));
+      const pts = q.points === '' || q.points == null ? '' : (Number(q.points) || '');
+      outQs.push({ id: q.id, type: q.type, prompt: String(q.prompt || ''), options: optsRaw, answer: String(q.answer), hint: String(q.hint || ''), points: pts, image: img });
+      return [cfg.gameId, g.id, g.name, targetName(g), txt(title), txt(story), i + 1, q.id,
+        q.type, txt(String(q.prompt || ''))].concat(optsRaw.map(txt), [txt(String(q.answer)), txt(String(q.hint || '')), pts, img, now]);
     });
     appendRows(qsh, rows);
     appendRows(ish, imgRows);
     setProp('roomsRev:' + cfg.gameId, String(Number(getProp('roomsRev:' + cfg.gameId) || 0) + 1));
-    cache().remove('rooms:' + cfg.gameId);
-    return { submittedAt: now, count: rows.length };
+    return { submittedAt: now, count: rows.length, room: { title: title, story: story, submittedAt: now, questions: outQs } };
   });
+}
+/**
+ * 같은 모둠의 여러 기기에서 보낸 자물쇠를 합쳐요.
+ * - 시트의 순서를 지키고, 새 자물쇠는 올라온 순서대로 뒤에 붙여요. 이 기기에서 지운 자물쇠는 빠져요.
+ * - 이 기기가 시트의 자물쇠를 모두 알고 있고(불러온 뒤) 순서를 직접 바꿨다면, 그 순서를 그대로 써요.
+ */
+function mergeQuestions(prevQs, incoming, base) {
+  const inIds = incoming.map(q => q.id), prevIds = prevQs.map(q => q.id);
+  if (!base) return incoming.slice();                      // 예전 방식: 통째로 바꾸기
+  const removed = base.filter(id => inIds.indexOf(id) < 0);  // 이 기기에서 지운 자물쇠
+  const knowsAll = prevIds.every(id => base.indexOf(id) >= 0 || inIds.indexOf(id) >= 0);
+  const reordered = inIds.filter(id => base.indexOf(id) >= 0).join('|') !== base.filter(id => inIds.indexOf(id) >= 0).join('|');
+  if (knowsAll && reordered) return incoming.slice();
+  const byId = {};
+  incoming.forEach(q => { byId[q.id] = q; });
+  const out = prevQs.filter(q => removed.indexOf(q.id) < 0).map(q => byId[q.id] || q);
+  incoming.forEach(q => { if (prevIds.indexOf(q.id) < 0) out.push(q); });
+  return out;
 }
 
 /* ---------------- 풀이 ---------------- */
 function answerQuestion(req) {
   const cfg = needConfig();
   needCode(cfg, req);
+  needGroup(cfg, req);
   if (cfg.phase !== 'play') throw new Error('지금은 문제를 풀 수 없어요');
   const solver = String(req.group || '');
   if (!findGroup(cfg, solver)) throw new Error('모둠을 먼저 골라 주세요');
@@ -946,13 +1011,14 @@ function syncScoreSheet(cfg, scores) {
 
 /* ---------------- 기록 저장 ---------------- */
 function loadRecords(gid) {
-  const hit = cache().get('recs:' + gid);
+  const key = 'recs:' + gid + ':' + (getProp('recsRev:' + gid) || 0);
+  const hit = cache().get(key);
   if (hit) return JSON.parse(hit);
   const recs = rowsOf(getSheet('records'), SH.records[1].length).filter(r => String(r[0]) === gid).map(r => ({
     t: String(r[1]), s: String(r[2]), r: String(r[4]), q: String(r[6]), c: String(r[7]) === 'O',
     p: Number(r[8]) || 0, a: Number(r[9]) || 0, h: String(r[10]) === 'O', src: String(r[12])
   }));
-  try { cache().put('recs:' + gid, JSON.stringify(recs), 600); } catch (e) {}
+  try { cache().put(key, JSON.stringify(recs), 600); } catch (e) {}
   return recs;
 }
 /** 같은 (종류, 푼 모둠, 방, 문제) 기록이 있으면 덮어쓰고 없으면 추가. withLock 안에서 부르세요. */
@@ -971,7 +1037,7 @@ function upsertRecords(cfg, list) {
     if (at) sh.getRange(at, 1, 1, W).setValues([row]); else add.push(row);
   });
   appendRows(sh, add);
-  cache().remove('recs:' + cfg.gameId);
+  bumpRecs(cfg.gameId);
   setProp('dirty:' + cfg.gameId, '1');
 }
 
@@ -982,7 +1048,11 @@ function getConfig() {
   const sh = getSheet('config');
   const v = sh.getLastRow() >= 2 ? String(sh.getRange(2, 2).getValue() || '') : '';
   const cfg = v ? JSON.parse(v) : null;
-  if (cfg && !cfg.joinCode) { cfg.joinCode = newCode(); putConfig(cfg); }   // 예전 게임에도 입장 코드 붙이기
+  if (cfg && (!cfg.joinCode || cfg.groups.some(g => !g.pin))) {          // 예전 게임에도 입장 코드·모둠 비밀번호 붙이기
+    if (!cfg.joinCode) cfg.joinCode = newCode();
+    cfg.groups.forEach(g => { if (!g.pin) g.pin = newCode(); });
+    putConfig(cfg);
+  }
   if (cfg) cache().put('cfg', JSON.stringify(cfg), 600);
   return cfg;
 }
@@ -994,6 +1064,7 @@ function putConfig(cfg) {
     ['게임 데이터(JSON) — 직접 고치지 마세요', JSON.stringify(cfg)],
     ['게임ID', cfg.gameId], ['학생 입장 코드', txt(String(cfg.joinCode || ''))], ['학급', txt(cfg.klass || '')], ['게임 이름', txt(cfg.title || '')],
     ['진행 단계', PHASE[cfg.phase] || cfg.phase], ['모둠', cfg.groups.map(g => g.name + '(' + targetName(g) + ')').join(', ')],
+    ['모둠 비밀번호', cfg.groups.map(g => g.name + ' ' + (g.pin || '')).join(' / ')],
     ['마지막 갱신', fmtTime(cfg.updatedAt)]
   ];
   sh.getRange(2, 1, rows.length, 2).setValues(rows);
@@ -1021,7 +1092,8 @@ function cleanConfig(c) {
 
 /* ---------------- 방 읽기 ---------------- */
 function loadRooms(gid) {
-  const hit = cache().get('rooms:' + gid);
+  const key = 'rooms:' + gid + ':' + (getProp('roomsRev:' + gid) || 0);   // 바뀔 때마다 새 열쇠라 예전 캐시를 안 써요
+  const hit = cache().get(key);
   if (hit) return JSON.parse(hit);
   const rooms = {};
   rowsOf(getSheet('questions'), SH.questions[1].length).forEach(r => {
@@ -1033,7 +1105,7 @@ function loadRooms(gid) {
       points: r[16] === '' ? '' : Number(r[16]), image: String(r[17]) });
   });
   Object.keys(rooms).forEach(k => rooms[k].questions.sort((a, b) => a.n - b.n));
-  try { cache().put('rooms:' + gid, JSON.stringify(rooms), 600); } catch (e) {}
+  try { cache().put(key, JSON.stringify(rooms), 600); } catch (e) {}
   return rooms;
 }
 
@@ -1077,6 +1149,7 @@ function withLock(fn) {
   try { return fn(); } finally { lock.releaseLock(); }
 }
 function cache() { return CacheService.getScriptCache(); }
+function bumpRecs(gid) { setProp('recsRev:' + gid, String(Number(getProp('recsRev:' + gid) || 0) + 1)); }
 function getProp(k) { return PropertiesService.getScriptProperties().getProperty(k); }
 function setProp(k, v) { PropertiesService.getScriptProperties().setProperty(k, v); }
 function delProp(k) { PropertiesService.getScriptProperties().deleteProperty(k); }
@@ -1095,6 +1168,10 @@ function normPw(s) {
   }).join('').toLowerCase();
 }
 function needTeacher(req) { if (!isTeacher(req)) throw new Error('선생님 비밀번호가 맞지 않아요'); }
+function groupOk(cfg, req) { const g = findGroup(cfg, String((req && req.group) || '')); return !!g && !!g.pin && String((req && req.gpin) || '').replace(/\D/g, '') === String(g.pin); }
+function needGroup(cfg, req) { if (!groupOk(cfg, req)) throw new Error('모둠 비밀번호가 맞지 않아요. 선생님께 우리 모둠 비밀번호를 확인해 주세요'); }
+/** 학생에게 보내는 설정: 모둠 비밀번호는 빼요 */
+function publicConfig(cfg) { const c = JSON.parse(JSON.stringify(cfg)); c.groups.forEach(g => { delete g.pin; }); return c; }
 function codeOk(cfg, req) { return !!cfg.joinCode && String((req && req.code) || '').replace(/\D/g, '') === String(cfg.joinCode); }
 function needCode(cfg, req) { if (!codeOk(cfg, req)) throw new Error('입장 코드가 맞지 않아요. 선생님 화면의 코드를 다시 입력해 주세요'); }
 function newCode(avoid) { let c; do { c = String(1000 + Math.floor(Math.random() * 9000)); } while (c === String(avoid || '')); return c; }
@@ -1114,7 +1191,7 @@ function fmtTime(ms) { return Utilities.formatDate(new Date(ms), TZ, 'yyyy-MM-dd
 // 선생님 화면의 '🔧 설정 도우미'에서 Apps Script 웹 앱 주소(…/exec)를 넣으면 되고,
 // 학생 기기는 QR 코드에 담긴 주소로 자동 연결돼요. (원하면 여기에 기본 주소를 적어 둘 수도 있어요)
 const API_URL = '';
-const NEED_SERVER_V = 2;   // 이 화면에 맞는 Code.gs 버전
+const NEED_SERVER_V = 3;   // 이 화면에 맞는 Code.gs 버전
 
 const CONTINENTS=[
   {key:'asia',name:'아시아',emoji:'🐼',color:'#ef476f'},{key:'europe',name:'유럽',emoji:'🏰',color:'#3a86ff'},
@@ -1187,6 +1264,7 @@ function hasServer(){return !!(window.__mockApi||(window.google&&google.script&&
 function call(action,data){
   const req=Object.assign({action},data||{});if(PW)req.pw=PW;
   if(ROLE==='student'&&CODE&&req.code==null)req.code=CODE;
+  if(ROLE==='student'&&req.gpin==null){const p=myPin();if(p)req.gpin=p}
   let p;
   if(window.__mockApi)p=window.__mockApi(req);
   else if(window.google&&google.script&&google.script.run)p=new Promise((res,rej)=>google.script.run.withSuccessHandler(res).withFailureHandler(rej).api(req));
@@ -1196,6 +1274,7 @@ function call(action,data){
   return p.then(r=>{
     if(!r||!r.ok){const msg=(r&&r.error)||'서버 오류';
       if(ROLE==='student'&&action!=='join'&&/입장 코드/.test(msg))codeExpired();
+      else if(ROLE==='student'&&action!=='joinGroup'&&/모둠 비밀번호/.test(msg))groupExpired();
       throw new Error(msg)}
     OFFSET=r.serverTime-Date.now();
     const v=r.v||1;if(v!==SERVER_V){SERVER_V=v;if(isT()&&v<NEED_SERVER_V)setTimeout(render,0)}
@@ -1203,8 +1282,12 @@ function call(action,data){
 }
 const now=()=>Date.now()+OFFSET;
 
-function myGroup(){try{const o=JSON.parse(lsGet('gem.group')||'null');if(o&&CFG&&o.gameId===CFG.gameId&&byId(o.gid))return o.gid}catch(e){}return null}
-function setMyGroup(gid){lsSet('gem.group',JSON.stringify({gameId:CFG.gameId,gid}));MYSERVER=null;ROOMS_REV=-1;ROOMS_KEY='';MYRECS=[]}
+function myGroupObj(){try{const o=JSON.parse(lsGet('gem.group')||'null');if(o&&CFG&&o.gameId===CFG.gameId&&byId(o.gid)&&o.pin)return o}catch(e){}return null}
+function myGroup(){const o=myGroupObj();return o?o.gid:null}
+function myPin(){const o=myGroupObj();return o?o.pin:''}
+function setMyGroup(gid,pin){lsSet('gem.group',JSON.stringify({gameId:CFG.gameId,gid,pin}));MYSERVER=null;ROOMS_REV=-1;ROOMS_KEY='';MYRECS=[]}
+function groupExpired(){if(!lsGet('gem.group'))return;lsDel('gem.group');MYSERVER=null;MYRECS=[];UI.room=null;VIEW='setup';lsSet('gem.view','setup');LAST_SIG='';render();
+  toast('🔒 모둠 비밀번호가 바뀌었어요. 우리 모둠을 다시 골라 새 비밀번호를 입력해 주세요','bad')}
 
 function codeExpired(){if(!CODE)return;CODE='';lsDel('gem.code');CFG=null;UI.room=null;firstLoad=true;render();toast('🔑 입장 코드가 바뀌었어요. 선생님 화면의 새 코드를 입력해 주세요','bad')}
 async function refresh(){
@@ -1221,6 +1304,7 @@ function applyState(r){
   const prevPhase=CFG&&CFG.phase, prevGame=CFG&&CFG.gameId;
   if(r.appUrl)APPURL=r.appUrl;
   if(r.needCode&&!isT()){codeExpired();return}
+  if(r.badGroup&&!isT()){CFG=r.config;groupExpired();return}
   if(!r.config){
     if(isT()){if(!CFG){CFG=defaultCfg();saveCfg(true)}}else CFG=null;
     render();return;
@@ -1232,7 +1316,7 @@ function applyState(r){
   const g=ROLE==='student'?(myGroup()||''):'';
   if(r.rooms){ROOMS=r.rooms;ROOMS_REV=r.roomsRev;ROOMS_KEY=g+r.config.phase}
   let draftLoaded=false;
-  if(r.myRoom){MYSERVER=r.myRoom;ROOMS_REV=r.roomsRev;ROOMS_KEY=g+r.config.phase;if(!getDraft()){putDraft(Object.assign(clone(r.myRoom),{_dirty:false}));draftLoaded=true}}
+  if(r.myRoom){MYSERVER=r.myRoom;ROOMS_REV=r.roomsRev;ROOMS_KEY=g+r.config.phase;if(!getDraft()){putDraft(Object.assign(clone(r.myRoom),{_dirty:false,_base:r.myRoom.questions.map(q=>q.id)}));draftLoaded=true}}
   if(r.records)RECS=r.records;
   if(r.myRecords)MYRECS=r.myRecords;
   // 학생: 선생님이 단계를 바꾸면 화면 이동
@@ -1273,6 +1357,7 @@ function saveCfg(immediate){clearTimeout(saveT);saveT=setTimeout(saveCfgNow,imme
 async function saveCfgNow(){
   saveT=null;if(!isT()||!CFG)return;SAVING=true;
   try{const r=await call('saveConfig',{config:CFG});const hadCode=CFG.joinCode;CFG.gameId=r.config.gameId;CFG.rev=r.config.rev;CFG.createdAt=r.config.createdAt;CFG.joinCode=r.config.joinCode;NET.ok=true;
+    CFG.groups.forEach(g=>{const s=r.config.groups.find(x=>x.id===g.id);if(s)g.pin=s.pin});
     if(!hadCode&&CFG.joinCode){LAST_SIG='';render()}}
   catch(e){NET.ok=false;toast('저장하지 못했어요: '+e.message,'bad')}
   SAVING=false;updateChrome();
@@ -1476,7 +1561,7 @@ async function loginTeacher(){
     ROLE='teacher';ssSet('gem.pw',pw);lsSet('gem.role','teacher');closeModal();firstLoad=true;CFG=null;render();await refresh();startPolling();toast('👩‍🏫 선생님 화면으로 들어왔어요','good')}
   catch(e){toast(/비밀번호/.test(e.message)?'비밀번호가 맞지 않아요. 👁 버튼으로 입력한 글자를 확인해 보세요.':e.message,'bad');const b=$('#pw-btn');if(b){b.disabled=false;b.textContent='입장하기'}const i=$('#pw-in');if(i){i.value='';i.focus()}}
 }
-function logout(){ROLE='';PW='';ssSet('gem.pw','');lsDel('gem.role');CFG=null;firstLoad=true;closeModal();render()}
+function logout(){ROLE='';PW='';ssSet('gem.pw','');lsDel('gem.role');CFG=null;firstLoad=true;resetUI();UI.room=null;UI.intro=true;TDRAFT={};closeModal();render()}
 function renderNoGame(){return `<div class="center-wrap"><div class="wait-card"><span class="w-ico">⏳</span><h2>아직 게임이 없어요</h2><p>선생님이 게임을 만들면 자동으로 열려요.<br>잠시만 기다려 주세요!</p><div class="spinner" style="border-color:#eee;border-top-color:var(--gold)"></div></div></div>`}
 
 function openMenu(){
@@ -1539,8 +1624,11 @@ function tSetup(){
       <div class="groups">${CFG.groups.map(g=>`<div class="g-row" style="--gc:${g.color}">
         <button class="g-emoji" onclick="cycleEmoji('${g.id}')" title="눌러서 바꾸기">${g.emoji}</button>
         <input class="inp g-name" value="${esc(g.name)}" oninput="setG('${g.id}','name',this.value)">
-        <select class="inp" onchange="setG('${g.id}','target',this.value)">${T.map(t=>`<option value="${t.key}" ${t.key===g.target?'selected':''}>${t.emoji} ${t.name}</option>`).join('')}</select></div>`).join('')}</div>
-      <p class="help">동물 아이콘을 누르면 바뀌어요. 학생들은 자기 기기에서 이 목록 중 자기 모둠을 골라요.</p></section>
+        <select class="inp" onchange="setG('${g.id}','target',this.value)">${T.map(t=>`<option value="${t.key}" ${t.key===g.target?'selected':''}>${t.emoji} ${t.name}</option>`).join('')}</select>
+        <span class="pin-badge" title="모둠 비밀번호">🔒 ${UI.showPins&&g.pin?g.pin:'••••'}</span></div>`).join('')}</div>
+      <div class="pin-bar"><p class="help" style="margin:0">동물 아이콘을 누르면 바뀌어요. 학생들은 자기 모둠을 고른 뒤 <b>모둠 비밀번호</b>를 입력해야 들어갈 수 있어요.</p>
+        <span class="sp"></span><button class="btn ghost sm" onclick="UI.showPins=!UI.showPins;render()">${UI.showPins?'🙈 비밀번호 숨기기':'👁 모둠 비밀번호 보기'}</button>
+        <button class="btn ghost sm" onclick="openPins()">🖨️ 비밀번호 쪽지 인쇄</button></div></section>
     <section class="card span2"><h2>⚙️ 규칙 설정</h2><div class="settings">
       ${setBox('makeMin','문제 만들기 시간','분','기본 30분',1,120)}${setBox('goal','모둠당 자물쇠(문제) 수','개','권장 개수',1,15)}
       ${setBox('points','문제 1개 기본 점수','점','문제마다 따로 바꿀 수 있어요',1,100)}${setBox('hintRate','힌트를 보면 점수','%','50이면 절반만 받아요',0,100)}
@@ -1574,9 +1662,27 @@ function sSetup(){
 function pickInner(){const mine=myGroup();return CFG.groups.map(g=>{const t=targetOf(g),s=STATUS[g.id]||{};
   return `<button class="pick-card ${g.id===mine?'on':''}" style="--c:${t.color}" onclick="pickGroup('${g.id}')">${g.id===mine?'<span class="ck">✓</span>':''}
     <span class="pe">${g.emoji}</span><b>${esc(g.name)}</b><small>${t.emoji} ${t.name} 담당${s.count?` · 자물쇠 ${s.count}개 제출`:''}</small></button>`}).join('')}
-function pickGroup(gid){const prev=myGroup();if(prev===gid)return;if(prev&&getDraft(prev)&&getDraft(prev)._dirty&&!confirm('전송하지 않은 문제가 있는 모둠이에요. 그래도 바꿀까요? (이 기기에 저장된 내용은 남아 있어요)'))return;
-  setMyGroup(gid);sfx.click();toast(`${byId(gid).emoji} ${byId(gid).name}으로 들어왔어요!`,'good');render();refresh();
-  if(CFG.phase!=='setup')setTimeout(()=>goView(CFG.phase),500)}
+function pickGroup(gid){
+  const prev=myGroup();if(prev===gid)return;
+  if(prev&&getDraft(prev)&&getDraft(prev)._dirty&&!confirm('지금 모둠에 아직 보내지 않은 문제가 있어요. 그래도 바꿀까요? (이 기기에 저장된 내용은 남아 있어요)'))return;
+  const g=byId(gid);
+  openModal(`<h3>${g.emoji} ${esc(g.name)} 비밀번호</h3><p>선생님께 받은 <b>우리 모둠 비밀번호 4자리</b>를 입력하세요.<br>다른 모둠 방에는 들어갈 수 없어요.</p>
+    <input class="inp code-in" id="gpin-in" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off"
+      oninput="this.value=this.value.replace(/\\D/g,'').slice(0,4);if(this.value.length===4)joinGroupPin('${gid}')" onkeydown="if(event.key==='Enter')joinGroupPin('${gid}')">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn ghost" onclick="closeModal()">취소</button><button class="btn gold" id="gpin-btn" onclick="joinGroupPin('${gid}')">들어가기</button></div>`);
+  setTimeout(()=>{const i=$('#gpin-in');if(i)i.focus()},50);
+}
+let gpinBusy=false;
+async function joinGroupPin(gid){
+  const i=$('#gpin-in');const pin=(i.value||'').replace(/\D/g,'');if(pin.length!==4)return toast('숫자 4자리를 입력해 주세요');
+  if(gpinBusy)return;gpinBusy=true;const b=$('#gpin-btn');b.disabled=true;b.textContent='확인 중…';
+  try{await call('joinGroup',{group:gid,gpin:pin});
+    setMyGroup(gid,pin);closeModal();sfx.click();toast(`${byId(gid).emoji} ${byId(gid).name}으로 들어왔어요!`,'good');render();refresh();
+    if(CFG.phase!=='setup')setTimeout(()=>goView(CFG.phase),500)}
+  catch(e){toast(/모둠 비밀번호/.test(e.message)?'비밀번호가 맞지 않아요. 우리 모둠 비밀번호를 확인해 주세요':e.message,'bad');
+    b.disabled=false;b.textContent='들어가기';i.value='';i.focus();const c=$('#modal-card');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake')}
+  finally{gpinBusy=false}
+}
 
 /* ================= 타이머 ================= */
 function remain(){const t=CFG&&CFG.timer;if(!t)return 0;return t.running?Math.max(0,(t.endAt-now())/1000):t.remaining}
@@ -1661,7 +1767,7 @@ function sMake(){
     <div class="timer-box"><div class="timer-digits" data-timer>00:00</div><div class="timer-bar"><i data-timer-bar></i></div><p style="margin-top:6px" data-timer-state></p></div>
   </section>
   <div class="make-grid stu"><aside class="side">${tipsBox()}
-    <div class="side-box"><h4>💡 함께 만들기</h4><p>같은 모둠 친구가 다른 기기로 고칠 수도 있어요. 다른 기기에서 보낸 최신 버전은 <b>☁️ 불러오기</b>로 가져오세요. 마지막에 보낸 기기의 내용이 저장돼요.</p></div></aside>
+    <div class="side-box"><h4>💡 여러 기기로 함께 만들기</h4><p>모둠 친구들이 각자 기기에서 자물쇠를 만들어 <b>📨 전송</b>하면, 시트에서 <b>올라온 순서대로 합쳐져요.</b> 친구가 보낸 자물쇠를 보려면 <b>☁️ 모둠 문제 불러오기</b>를 누르세요. 순서는 <b>↕ 순서 바꾸기</b>로 정리한 뒤 다시 전송하면 돼요.</p></div></aside>
   <section class="editor">${renderEditor(g.id)}</section></div></div>`;
 }
 
@@ -1686,7 +1792,7 @@ function renderEditor(gid){
     <div><label class="lb" style="margin-top:0">📖 방 이야기 (입장할 때 보여 줘요)</label><textarea class="inp" rows="2" placeholder="예: 탐험대가 ${t.name}의 비밀 유적에 갇혔다! 자물쇠를 모두 열어야 탈출할 수 있다…" oninput="edMut('${gid}',r=>r.story=this.value)">${esc(room.story)}</textarea></div>
   </div></div>
   ${qs.length?qs.map((q,i)=>renderQEdit(gid,q,i,t)).join(''):`<div class="empty-q">아직 자물쇠가 없어요. 아래에서 문제 유형을 골라 첫 자물쇠를 만들어 보세요! 🔒</div>`}
-  <div class="add-row"><div class="lbl">＋ 자물쇠 추가 <small>${qs.length} / ${CFG.settings.goal}개 (권장)</small></div>
+  <div class="add-row"><div class="lbl"><span>＋ 자물쇠 추가 <small>${qs.length} / ${CFG.settings.goal}개 (권장)</small></span>${qs.length>1?`<button class="btn glass sm" onclick="openOrder('${gid}')">↕ 순서 바꾸기</button>`:''}</div>
     ${Object.entries(QT).map(([k,v])=>`<button onclick="addQ('${gid}','${k}')"><span>${v.icon}</span>${v.label}</button>`).join('')}</div>`;
 }
 function sendBarInner(gid){
@@ -1694,12 +1800,15 @@ function sendBarInner(gid){
   if(isT()){const s=STATUS[gid]||{};
     return `<div class="st ${TDRAFT[gid]?'st-warn':'st-ok'}">${TDRAFT[gid]?'✏️ 선생님이 고친 내용이 아직 저장되지 않았어요':s.count?`✅ 시트에 저장된 자물쇠 ${s.count}개`:'아직 이 모둠이 보낸 문제가 없어요'}<small>${s.at?'마지막 저장 '+s.at:''}${bad?` · ⚠ 미완성 ${bad}개`:''}</small></div>
       ${TDRAFT[gid]?`<button class="btn ghost sm" onclick="discardT('${gid}')">↺ 되돌리기</button>`:''}<button class="btn gold" onclick="sendRoom('${gid}')" ${n?'':'disabled'}>💾 시트에 저장</button>`}
-  const s=STATUS[gid]||{};
-  return `<div class="st ${room._dirty?'st-warn':(s.count?'st-ok':'')}">${room._dirty?'✏️ 아직 보내지 않은 변경이 있어요':s.count?`✅ 선생님께 보냈어요 (자물쇠 ${s.count}개)`:'아직 보내지 않았어요'}
-    <small>${s.at?'마지막 전송 '+s.at.slice(11):'만든 내용은 이 기기에 자동 저장돼요'}${bad?` · ⚠ 미완성 자물쇠 ${bad}개`:''}</small></div>
-    ${MYSERVER?`<button class="btn ghost sm" onclick="loadServerCopy()">☁️ 보낸 버전 불러오기</button>`:''}
-    <button class="btn gold big" id="send-btn" onclick="sendRoom('${gid}')" ${n?'':'disabled'}>📨 선생님께 전송</button>`;
+  const s=STATUS[gid]||{},fresh=newFromOthers();
+  return `<div class="st ${room._dirty?'st-warn':(s.count?'st-ok':'')}">${room._dirty?'✏️ 아직 보내지 않은 변경이 있어요':s.count?`✅ 우리 모둠 자물쇠 ${s.count}개가 선생님께 가 있어요`:'아직 보내지 않았어요'}
+    <small>${s.at?'마지막 전송 '+s.at.slice(11):'만든 내용은 이 기기에 자동 저장돼요'}${bad?` · ⚠ 미완성 자물쇠 ${bad}개`:''}</small>
+    ${fresh?`<span class="fresh">📥 친구가 다른 기기로 보낸 자물쇠 ${fresh}개가 있어요 → ☁️ 불러오기</span>`:''}</div>
+    <button class="btn ${fresh?'mint':'ghost'} sm" onclick="loadServerCopy()">☁️ 모둠 문제 불러오기</button>
+    <button class="btn gold big" id="send-btn" onclick="sendRoom('${gid}')" ${n||(room._base||[]).length?'':'disabled'}>📨 선생님께 전송</button>`;
 }
+/** 시트에는 있는데 이 기기는 아직 모르는 자물쇠 수 (친구가 다른 기기에서 보낸 것) */
+function newFromOthers(){if(!MYSERVER)return 0;const d=getDraft()||emptyRoom();const known=new Set([...(d._base||[]),...d.questions.map(q=>q.id)]);return MYSERVER.questions.filter(q=>!known.has(q.id)).length}
 function refreshSendBar(gid){const el=$('#send-bar');if(el)el.innerHTML=sendBarInner(gid)}
 function qWarn(q){
   if(!String(q.prompt||'').trim())return '문제 내용이 비어 있어요';
@@ -1750,7 +1859,26 @@ function setType(gid,id,type){edMut(gid,r=>{const q=findQ(r,id);if(q.type===type
 function addQ(gid,type){edMut(gid,r=>r.questions.push({id:uid('q'),type,prompt:'',image:'',options:['','','',''],answer:'',hint:'',points:''}));sfx.click();rerenderEditor(gid);
   setTimeout(()=>{const c=document.querySelectorAll('.q-card');const last=c[c.length-1];if(last){last.scrollIntoView({behavior:'smooth',block:'center'});last.querySelector('textarea').focus()}},60)}
 function delQ(gid,id){if(!confirm('이 자물쇠(문제)를 지울까요?'))return;edMut(gid,r=>r.questions=r.questions.filter(q=>q.id!==id));rerenderEditor(gid)}
-function moveQ(gid,i,d){edMut(gid,r=>{const a=r.questions,j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]]});rerenderEditor(gid)}
+function moveQ(gid,i,d,quiet){edMut(gid,r=>{const a=r.questions,j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]]});if(!quiet)rerenderEditor(gid)}
+/* ↕ 순서 바꾸기 창 */
+function orderList(gid){const qs=edGet(gid).questions;return qs.map((q,i)=>`<div class="ord-row"><span class="ord-no">${i+1}</span><span>${QT[q.type].icon}</span>
+  <span class="ord-txt">${esc(String(q.prompt||'(문제 내용 없음)').slice(0,48))}</span>
+  <button class="mini" title="맨 위로" onclick="moveTo('${gid}',${i},0)" ${i?'':'disabled'}>⤒</button>
+  <button class="mini" title="위로" onclick="moveQ('${gid}',${i},-1,true);refreshOrder('${gid}')" ${i?'':'disabled'}>▲</button>
+  <button class="mini" title="아래로" onclick="moveQ('${gid}',${i},1,true);refreshOrder('${gid}')" ${i<qs.length-1?'':'disabled'}>▼</button></div>`).join('')}
+function refreshOrder(gid){const el=$('#ord-list');if(el)el.innerHTML=orderList(gid)}
+function moveTo(gid,i,to){edMut(gid,r=>{const [q]=r.questions.splice(i,1);r.questions.splice(to,0,q)});refreshOrder(gid)}
+function openOrder(gid){openModal(`<h3>↕ 자물쇠 순서 바꾸기</h3><p>▲▼로 순서를 바꾸세요. 방탈출에서 이 순서대로 자물쇠가 나와요.<br>${isT()?'다 바꾼 뒤 <b>💾 시트에 저장</b>을 눌러야 반영돼요.':'다 바꾼 뒤 <b>📨 선생님께 전송</b>을 눌러야 친구들과 선생님께 반영돼요.'}</p>
+  <div id="ord-list" class="ord-list">${orderList(gid)}</div><div style="text-align:right;margin-top:14px"><button class="btn gold" onclick="closeModal()">완료</button></div>`,'',()=>rerenderEditor(gid))}
+/* 교사: 모둠 비밀번호 보기 · 쪽지 인쇄 */
+function openPins(){
+  const rows=CFG.groups.map(g=>{const t=targetOf(g);return `<div class="pin-slip"><div class="ps-g">${g.emoji} ${esc(g.name)}</div><div class="ps-t">${t.emoji} ${t.name} 담당</div><div class="ps-pin">${g.pin||'----'}</div><div class="ps-help">입장 코드 ${CFG.joinCode||''} → 우리 모둠 → 이 비밀번호</div></div>`}).join('');
+  openModal(`<h3>🔒 모둠 비밀번호</h3><p>잘라서 모둠마다 한 장씩 나눠 주세요. 칠판(프로젝터)에는 띄우지 마세요.</p>
+    <div id="cert"><div class="pin-grid">${rows}</div></div>
+    <div class="cert-actions"><button class="btn ghost sm" onclick="regenPins()">🔄 모든 모둠 비밀번호 새로 만들기</button><button class="btn ink" onclick="window.print()">🖨️ 인쇄하기</button></div>`,'wide');
+}
+async function regenPins(){if(!confirm('모든 모둠 비밀번호를 새로 만들까요? 이미 들어와 있는 학생들은 새 비밀번호를 다시 입력해야 해요.'))return;
+  try{const r=await call('newGroupPin',{});CFG.groups.forEach(g=>{const s=r.config.groups.find(x=>x.id===g.id);if(s)g.pin=s.pin});openPins();render();toast('🔒 새 모둠 비밀번호를 만들었어요','good')}catch(e){toast(e.message,'bad')}}
 function uploadImg(gid,id,input){
   const f=input.files[0];if(!f)return;const rd=new FileReader();
   rd.onload=()=>{const img=new Image();img.onload=()=>{
@@ -1768,17 +1896,32 @@ async function sendRoom(gid){
   const btn=$('#send-btn');if(btn){btn.disabled=true;btn.textContent='보내는 중…'}
   try{
     const payload={title:room.title,story:room.story,questions:room.questions.map(q=>({id:q.id,type:q.type,prompt:q.prompt,options:q.options,answer:q.type==='ox'?oxNorm(q.answer):q.answer,hint:q.hint,points:q.points,image:q.image}))};
-    const r=await call('submitRoom',{group:gid,room:payload});
+    // base: 이 기기가 알고 있던 시트의 자물쇠들 → 서버가 다른 기기에서 보낸 것과 합쳐요
+    const base=isT()?((ROOMS[gid]||{questions:[]}).questions.map(q=>q.id)):(room._base||[]);
+    const before=room.questions.length;
+    const r=await call('submitRoom',{group:gid,room:payload,base});
     room.questions.forEach(q=>{if(q.image&&q.image.startsWith('data:')){IMG[q.id]=q.image}});
     STATUS[gid]={count:r.count,at:r.submittedAt};
-    if(isT()){delete TDRAFT[gid];ROOMS[gid]=Object.assign(clone(payload),{submittedAt:r.submittedAt});patch('gtabs',gtabsInner);patch('editor',()=>renderEditor(gid));patch('status',statusInner)}
-    else{room._dirty=false;putDraft(room,gid);MYSERVER=clone(payload);refreshSendBar(gid)}
-    sfx.right();toast(`📨 자물쇠 ${r.count}개를 ${isT()?'시트에 저장':'선생님께 전송'}했어요!`,'good');refresh();
+    const merged=r.room||Object.assign(clone(payload),{submittedAt:r.submittedAt});
+    if(isT()){delete TDRAFT[gid];ROOMS[gid]=merged;patch('gtabs',gtabsInner);patch('editor',()=>renderEditor(gid));patch('status',statusInner)}
+    else{putDraft(Object.assign(clone(merged),{_dirty:false,_base:merged.questions.map(q=>q.id)}),gid);MYSERVER=clone(merged);const y=scrollY;render();scrollTo(0,y)}
+    const extra=r.count-before;
+    sfx.right();toast(`📨 ${isT()?'시트에 저장':'선생님께 전송'}했어요! 우리 모둠 자물쇠 ${r.count}개${extra>0?` (친구가 보낸 ${extra}개 합쳐짐)`:''}`,'good');refresh();
   }catch(e){toast('보내지 못했어요: '+e.message,'bad');refreshSendBar(gid)}
 }
 function discardT(gid){if(!confirm('고친 내용을 버리고 시트에 저장된 버전으로 돌아갈까요?'))return;delete TDRAFT[gid];patch('gtabs',gtabsInner);patch('editor',()=>renderEditor(gid))}
-function loadServerCopy(){if(!MYSERVER)return;const d=getDraft();if(d&&d._dirty&&!confirm('이 기기에서 고친 내용이 사라지고, 마지막으로 보낸 버전을 불러와요. 계속할까요?'))return;
-  putDraft(Object.assign(clone(MYSERVER),{_dirty:false}));render();toast('☁️ 보낸 버전을 불러왔어요')}
+/** ☁️ 모둠 문제 불러오기: 시트에 올라온 순서대로 가져오고, 이 기기에서 새로 만든(아직 안 보낸) 자물쇠는 뒤에 붙여요 */
+async function loadServerCopy(){
+  ROOMS_REV=-1;ROOMS_KEY='';await refresh();
+  if(!MYSERVER||!MYSERVER.questions.length)return toast('아직 우리 모둠이 보낸 문제가 없어요. 먼저 📨 전송해 주세요');
+  const d=getDraft()||emptyRoom(),srv=clone(MYSERVER),srvIds=srv.questions.map(q=>q.id),base=d._base||[];
+  const localNew=d.questions.filter(q=>!srvIds.includes(q.id)&&!base.includes(q.id));      // 이 기기에서 새로 만든 것
+  const localEdited=d._dirty&&d.questions.some(q=>srvIds.includes(q.id));
+  if(localEdited&&!confirm('이 기기에서 고쳤지만 아직 안 보낸 내용은 시트에 있는 내용으로 바뀌어요.\n(이 기기에서 새로 만든 자물쇠는 그대로 남아요) 불러올까요?'))return;
+  const nd={title:srv.title||d.title,story:srv.story||d.story,questions:[...srv.questions,...localNew],_base:srvIds,_dirty:localNew.length>0};
+  putDraft(nd);const y=scrollY;render();scrollTo(0,y);
+  toast(`☁️ 모둠 문제 ${srv.questions.length}개를 올라온 순서대로 불러왔어요${localNew.length?` · 이 기기의 새 자물쇠 ${localNew.length}개는 뒤에 있어요`:''}`,'good');
+}
 
 /* 예시 방 (교사) */
 async function loadDemo(){
