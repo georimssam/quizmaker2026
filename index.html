@@ -19,7 +19,7 @@
 body{margin:0;min-height:100vh;font-family:var(--body);color:var(--ink);background:
   radial-gradient(1200px 600px at 10% -10%, #24508f 0, transparent 60%),
   radial-gradient(900px 500px at 100% 110%, #3b2a7a 0, transparent 55%),
-  var(--bg);background-attachment:fixed;-webkit-font-smoothing:antialiased}
+  var(--bg);background-attachment:fixed;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:break-word}
 body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.07;z-index:0;
   background-image:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 64px),repeating-linear-gradient(90deg,#fff 0 1px,transparent 1px 64px);
   -webkit-mask-image:radial-gradient(ellipse at center,#000 30%,transparent 75%);mask-image:radial-gradient(ellipse at center,#000 30%,transparent 75%)}
@@ -114,21 +114,20 @@ textarea.inp{resize:vertical;min-height:72px;line-height:1.55}
 .helper{text-align:left}
 .helper .w-ico,.helper h2,.helper>p{text-align:center}
 .pin-badge{flex:none;font-weight:900;font-size:13px;color:var(--muted);background:var(--paper2);padding:6px 9px;border-radius:10px;font-variant-numeric:tabular-nums}
-.class-bar{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:14px 16px;margin-bottom:8px;color:#fff}
+.class-bar{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line,#e5dcc8)}
 .cb-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-.cb-head small{color:rgba(255,255,255,.7);font-size:13px}
 .cls-list{display:flex;flex-wrap:wrap;gap:8px}
-.cls{display:flex;align-items:stretch;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.1);border:2px solid transparent;color:#fff}
-.cls.on{background:var(--paper);border-color:var(--gold);color:var(--ink)}
+.cls{display:flex;align-items:stretch;border-radius:14px;overflow:hidden;background:#f6f1e6;border:2px solid transparent;color:var(--ink)}
+.cls.on{background:#fff8e1;border-color:var(--gold);color:var(--ink)}
 .cls-main{border:0;background:transparent;text-align:left;padding:8px 12px;color:inherit;min-width:110px}
-.cls-main:hover:not(:disabled){background:rgba(255,255,255,.12)}
+.cls-main:hover:not(:disabled){background:rgba(0,0,0,.05)}
 .cls-main:disabled{cursor:default;opacity:1}
 .cls-main b{display:block;font-family:var(--display);font-weight:400;font-size:19px;line-height:1.2}
 .cls-main small{font-size:11.5px;opacity:.75}
-.cls-del{border:0;background:rgba(0,0,0,.12);padding:0 10px;font-size:14px;color:inherit}
+.cls-del{border:0;background:rgba(0,0,0,.06);padding:0 10px;font-size:14px;color:inherit}
 .cls-del:hover:not(:disabled){background:var(--coral);color:#fff}
 .cls-del:disabled{opacity:.3;cursor:not-allowed}
-.cls-empty{margin:0;color:rgba(255,255,255,.75);font-size:14px}
+.cls-empty{margin:0;color:var(--muted,#7a7468);font-size:14px}
 .pin-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
 .pin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
 .pin-slip{border:2px dashed #c9bb98;border-radius:14px;padding:14px;text-align:center;background:#fff}
@@ -358,7 +357,8 @@ textarea.inp{resize:vertical;min-height:72px;line-height:1.55}
 .sb-adj button{width:22px;height:18px;border:0;border-radius:6px;background:var(--paper2);font-size:12px;line-height:1;padding:0;color:var(--muted)}
 .sb-note{font-size:11.5px;color:var(--muted);margin:10px 0 0;line-height:1.5}
 .matrix{width:100%;border-collapse:collapse;font-size:14px}
-.matrix th,.matrix td{padding:8px;text-align:center;border-bottom:1px dashed var(--line)}
+.matrix th,.matrix td{padding:8px;text-align:center;border-bottom:1px dashed var(--line);white-space:nowrap}
+.matrix td:first-child{position:sticky;left:0;background:var(--paper,#fff);z-index:1}
 .matrix th{font-size:12.5px;color:var(--muted)}
 .matrix td:first-child,.matrix th:first-child{text-align:left;font-weight:700}
 .cell{display:inline-block;min-width:44px;padding:3px 8px;border-radius:999px;background:var(--paper2);font-weight:700;font-size:12.5px}
@@ -438,7 +438,7 @@ textarea.inp{resize:vertical;min-height:72px;line-height:1.55}
 
 /* ---------- overlays ---------- */
 .overlay{position:fixed;inset:0;z-index:60;background:rgba(6,12,28,.72);backdrop-filter:blur(6px);display:grid;place-items:center;padding:20px}
-.escape-card{background:var(--paper);border-radius:30px;padding:40px 36px 32px;text-align:center;max-width:560px;width:100%;border-top:10px solid var(--c)}
+.escape-card{background:var(--paper);border-radius:30px;padding:40px 36px 32px;text-align:center;max-width:560px;width:100%;box-sizing:border-box;border-top:10px solid var(--c)}
 .esc-stamp{display:inline-block;transform:rotate(-8deg);border:6px solid var(--coral);color:var(--coral);font-family:var(--display);font-size:54px;padding:6px 22px;border-radius:18px;letter-spacing:.06em}
 .esc-stamp.anim{animation:stampIn .5s cubic-bezier(.2,1.6,.4,1)}
 @keyframes stampIn{from{transform:rotate(-8deg) scale(2.4);opacity:0}}
@@ -511,7 +511,11 @@ table.rank{width:100%;border-collapse:collapse;font-size:15px}
 table.rank th{text-align:left;font-size:12.5px;color:var(--muted);font-weight:700;padding:8px 10px;border-bottom:2px solid var(--line)}
 table.rank td{padding:12px 10px;border-bottom:1px dashed var(--line)}
 table.rank td.total{font-family:var(--display);font-size:22px}
-.tbl-wrap{overflow-x:auto}
+table.rank th,table.rank td{white-space:nowrap;word-break:keep-all}
+table.rank td.mob{display:none}
+table.rank td.sum small{font-family:var(--body);font-size:12px;margin-left:2px;color:var(--muted)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl-wrap table th,.tbl-wrap table td{word-break:keep-all}
 
 /* ---------- certificate ---------- */
 .cert{background:#fffdf6;padding:16px;border-radius:8px;color:#2a2416}
@@ -540,8 +544,8 @@ table.rank td.total{font-family:var(--display);font-size:22px}
 
 /* ---------- responsive ---------- */
 @media (max-width:1050px){
-  .stepper .step span{display:none}
-  .make-grid,.play-grid{grid-template-columns:1fr}
+  .make-grid,.play-grid{grid-template-columns:minmax(0,1fr)}
+  .make-grid>*,.play-grid>*{min-width:0}
   .make-grid.stu .side{order:2}
   .side,.scoreboard{position:static}
   .timer-panel{grid-template-columns:1fr}
@@ -550,8 +554,9 @@ table.rank td.total{font-family:var(--display);font-size:22px}
 @media (max-width:720px){
   .topbar{padding:10px 12px;gap:8px;flex-wrap:wrap}
   .brand small,.brand b{display:none}
-  .stepper{order:3;width:100%;justify-content:space-between}
-  .step{padding:6px 10px}
+  .stepper{order:3;width:100%;justify-content:space-between;gap:2px}
+  .step{padding:6px 8px;gap:5px;font-size:13px;flex:1;justify-content:center;white-space:nowrap}
+  .step i{width:18px;height:18px;font-size:11px}
   .page{padding:18px 16px 60px}
   .hero,.role-grid{grid-template-columns:1fr}
   .hero-art{display:none}
@@ -563,10 +568,56 @@ table.rank td.total{font-family:var(--display);font-size:22px}
   .podium{gap:6px;min-height:300px}
   .pod-emoji{font-size:48px}.pod-name{font-size:20px}
   .ans-ox button{width:120px;height:110px;font-size:64px}
-  .cert-inner{padding:40px 22px 30px}
-  .cert h1{font-size:44px}
+  .timer-panel{grid-template-columns:1fr!important}
+  .escape-card{padding:28px 18px 24px;border-radius:24px}
+  .esc-stamp{font-size:38px;border-width:5px;padding:4px 16px}
+  .escape-card h2{font-size:24px}
+  .stars button{font-size:40px}
+  .pick-cards{grid-template-columns:1fr 1fr;gap:10px}
+  .pick-card{padding:14px;border-radius:20px}
+  .pick-card .pe{font-size:32px}
+  .pick-card b{font-size:21px;margin-top:6px}
+  .pick-card small{font-size:12.5px}
+  .pick-card .ck{top:10px;right:10px;width:28px;height:28px}
+  .wait-card{padding:32px 20px;border-radius:24px}
+  .wait-card h2{font-size:26px}
+  .modal{padding:10px}
+  .modal-card{padding:22px 16px;border-radius:20px;max-height:94vh}
+  .modal-card h3{font-size:22px;padding-right:36px}
+  .cert{padding:4px}
+  .cert-inner{padding:38px 14px 22px;outline-offset:-6px}
+  .cert-corner{font-size:16px}
+  .cert-corner.tl,.cert-corner.bl{left:10px}.cert-corner.tr,.cert-corner.br{right:10px}
+  .cert-corner.tl,.cert-corner.tr{top:8px}.cert-corner.bl,.cert-corner.br{bottom:8px}
+  .cert-no{font-size:12px}
+  .cert h1{font-size:36px;letter-spacing:.4em}
+  .cert-award{font-size:19px;padding:5px 14px;white-space:nowrap;margin-bottom:20px}
+  .cert-to{font-size:15px;margin-bottom:16px}
+  .cert-to b{font-size:25px;white-space:nowrap;margin-left:4px}
+  .cert-body{font-size:15.5px;line-height:1.85;margin-bottom:22px}
+  .cert-date{font-size:15px;margin-bottom:16px}
+  .cert-sign{font-size:15px;gap:10px;flex-wrap:wrap}
+  .seal{width:58px;height:58px;font-size:12px}
   .timer-bar{width:100%}
   .timer-digits{font-size:52px}
+  .banner{padding:14px 16px;gap:10px}
+  .banner>div:first-child{flex:1 1 100%}
+  .banner .btn{flex:1 1 auto}
+  .special{padding:18px;align-items:flex-start;gap:12px}
+  .special .s-ico{width:52px;height:52px;font-size:30px;border-radius:16px}
+  .special h4{font-size:20px}
+  .special .who{font-size:16px}
+  /* 최종 점수표: 휴대폰에서는 모둠마다 카드 한 장 */
+  table.rank thead{display:none}
+  table.rank,table.rank tbody{display:block}
+  table.rank tr{display:grid;grid-template-columns:30px minmax(0,1fr) auto auto;align-items:center;gap:2px 10px;padding:12px 2px;border-bottom:1px dashed var(--line)}
+  table.rank td{border:0;padding:0}
+  table.rank td.tp,table.rank td.dt{display:none}
+  table.rank td.rk{text-align:center}
+  table.rank td.nm{white-space:normal;font-size:16px}
+  table.rank td.mob{display:flex;grid-column:2/-1;grid-row:2;flex-wrap:wrap;gap:2px 10px;font-size:13px;color:var(--muted);white-space:normal}
+  table.rank td.mob span{white-space:nowrap}
+  table.rank td.mob b{color:var(--ink)}
 }
 </style>
 </head>
@@ -584,7 +635,7 @@ table.rank td.total{font-family:var(--display);font-size:22px}
 <main id="app"></main>
 
 <div id="bigtimer" class="bigtimer" hidden>
-  <div class="bt-title" id="bt-title">문제 만들기 시간</div>
+  <div class="bt-title" id="bt-title">출제 시간</div>
   <div class="bt-digits" data-timer>30:00</div>
   <div class="timer-bar"><i data-timer-bar></i></div>
   <div class="bt-groups" id="bt-groups"></div>
@@ -622,7 +673,7 @@ const SH = {
 };
 const SCORE_HEAD = ['게임ID', '날짜', '게임 이름', '순위', '모둠', '담당', '푼 자물쇠', '정답 점수',
                     '받은 별점(평균)', '출제 보너스', '조정', '합계', '갱신 시각'];
-const PHASE = { setup: '준비', make: '문제 만들기', play: '방탈출', awards: '시상식' };
+const PHASE = { setup: '준비', make: '출제', play: '방탈출', awards: '시상식' };
 const TYPE_KO = { mc: '객관식', short: '단답형', ox: 'OX', code: '숫자 자물쇠' };
 const TARGETS = {
   asia: '아시아', europe: '유럽', africa: '아프리카', namerica: '북아메리카', samerica: '남아메리카', oceania: '오세아니아', polar: '극지방',
@@ -1299,9 +1350,9 @@ const GCOL=['#ff7a59','#f59f00','#20c997','#339af0','#9b5de5','#f15bb5','#2b8a3e
 const CIRC=['①','②','③','④'];
 const QT={mc:{label:'객관식',icon:'🔘'},short:{label:'단답형',icon:'✏️'},ox:{label:'O / X',icon:'⭕'},code:{label:'숫자 자물쇠',icon:'🔢'}};
 const TRIES={ox:1,mc:2,short:3,code:3};
-const STEPS=[['setup','준비'],['make','문제 만들기'],['play','방탈출'],['awards','시상식']];
-const STEPS_S=[['setup','우리 모둠'],['make','문제 만들기'],['play','방탈출'],['awards','시상식']];
-const PHASE_KO={setup:'준비 중',make:'출제 중',play:'풀이 중',awards:'시상식'};
+const STEPS=[['setup','준비'],['make','출제'],['play','방탈출'],['awards','시상식']];
+const STEPS_S=STEPS;
+const PHASE_KO={setup:'준비',make:'출제',play:'방탈출',awards:'시상식'};
 
 /* ---------- 도우미 ---------- */
 const $=s=>document.querySelector(s);
@@ -1418,7 +1469,7 @@ function applyState(r){
   if(r.myRecords)MYRECS=r.myRecords;
   // 학생: 선생님이 단계를 바꾸면 화면 이동
   if(!isT()&&prevPhase&&prevPhase!==CFG.phase){
-    const msg={make:'✍️ 문제 만들기가 시작됐어요!',play:'🔓 출제 마감! 이제 다른 모둠의 방을 탈출해 보세요',awards:'🏆 시상식이 시작됐어요!',setup:'선생님이 게임을 다시 준비하고 있어요'}[CFG.phase];
+    const msg={make:'✍️ 출제가 시작됐어요!',play:'🔓 출제 마감! 이제 다른 모둠의 방을 탈출해 보세요',awards:'🏆 시상식이 시작됐어요!',setup:'선생님이 게임을 다시 준비하고 있어요'}[CFG.phase];
     if(CFG.phase!=='setup'||VIEW!=='setup'){VIEW=CFG.phase==='setup'?'setup':CFG.phase;lsSet('gem.view',VIEW);UI.room=null}
     toast(msg,'good');sfx.right();LAST_SIG='';render();return;
   }
@@ -1488,19 +1539,19 @@ function updateChrome(){
   $('#snd').textContent=SOUND?'🔊':'🔇';
   if(!ROLE||!CFG){st.hidden=true;chip.hidden=!ROLE;if(ROLE)chip.innerHTML=chipHTML();$('#brand-sub').textContent='우리 반이 만드는 탈출 게임';return}
   st.hidden=false;chip.hidden=false;chip.innerHTML=chipHTML();
-  $('#brand-sub').textContent=[CFG.klass,CFG.title].filter(Boolean).join(' · ');
+  $('#brand-sub').textContent=[CFG.klass,CFG.title].filter(Boolean).join('  ');
   const v=curView(),steps=isT()?STEPS:STEPS_S;
   st.innerHTML=steps.map(([k,l],i)=>{const locked=!isT()&&!phaseAtLeast(k);
     return `<button class="step ${k===v?'on':''} ${locked?'locked':''}" onclick="goView('${k}')"><i>${locked?'🔒':i+1}</i><span>${l}</span></button>`}).join('');
 }
 function chipHTML(){
   const dot=`<span class="dot ${NET.loaded?(NET.ok?'ok':'bad'):''}" title="${NET.ok?'구글 시트와 연결됨':'연결 끊김: '+esc(NET.err)}"></span>`;
-  if(isT())return `${dot}👩‍🏫 선생님 · ${CFG?PHASE_KO[CFG.phase]:''}${CFG&&CFG.joinCode?` · 🔑 ${CFG.joinCode}`:''}`;
+  if(isT())return `${dot}👩‍🏫 선생님 <span style="opacity:.75;margin-left:6px">${CFG?PHASE_KO[CFG.phase]:''}</span>${CFG&&CFG.joinCode?`<span style="margin-left:8px">🔑 ${CFG.joinCode}</span>`:''}`;
   const g=CFG&&byId(myGroup());return `${dot}🧑‍🎓 ${g?g.emoji+' '+esc(g.name):'학생'}`;
 }
 function goView(v){
   if(!isT()){
-    if(!phaseAtLeast(v))return toast(v==='make'?'🔒 선생님이 문제 만들기를 시작하면 열려요':v==='play'?'🔒 선생님이 출제를 마감하면 열려요':'🔒 선생님이 시상식을 열면 들어갈 수 있어요');
+    if(!phaseAtLeast(v))return toast(v==='make'?'🔒 선생님이 출제를 시작하면 열려요':v==='play'?'🔒 선생님이 출제를 마감하면 열려요':'🔒 선생님이 시상식을 열면 들어갈 수 있어요');
     if(v!=='setup'&&!myGroup())return toast('먼저 우리 모둠을 골라 주세요');
   }
   if(v==='play'&&VIEW!=='play')UI.room=null;
@@ -1529,7 +1580,7 @@ const inGas=()=>!!(window.google&&google.script&&google.script.run);
 function renderConnect(){
   return `<div class="center-wrap"><div class="wait-card helper" style="max-width:720px">
     <div class="stu-note">🧑‍🎓 <b>학생이라면</b> 선생님 화면의 <b>QR 코드</b>를 찍어서 들어와 주세요.</div>
-    <span class="w-ico">🔧</span><h2>처음 설정 · 구글 시트 연결</h2>
+    <span class="w-ico">🔧</span><h2>처음 설정: 구글 시트 연결</h2>
     <p>선생님 컴퓨터에서 한 번만 하면 돼요. 버튼을 누르면 필요한 코드가 복사돼요.</p>${helperSteps()}</div></div>`;
 }
 function helperSteps(){
@@ -1539,7 +1590,7 @@ function helperSteps(){
       <a class="btn ghost sm" href="https://sheets.new" target="_blank" rel="noopener">📄 새 스프레드시트 열기</a></li>
     <li><b>Code.gs 붙여넣기</b><span>아래 버튼으로 복사 → Apps Script의 <b>Code.gs</b>를 <b>Ctrl+A → Ctrl+V</b> → <b>Ctrl+S</b> 저장</span>
       <button class="btn gold sm" onclick="copyCodeGs(this)">📋 Code.gs 복사</button></li>
-    <li><b>웹 앱으로 배포</b><span><b>배포 → 새 배포 → ⚙️ 웹 앱</b> · 실행: <b>나</b> · 액세스: <b>모든 사용자</b> → 배포 → 나온 <b>웹 앱 URL(…/exec)</b> 복사<br>
+    <li><b>웹 앱으로 배포</b><span><b>배포 → 새 배포 → ⚙️ 웹 앱</b>, 실행은 <b>나</b>, 액세스는 <b>모든 사용자</b> → 배포 → 나온 <b>웹 앱 URL(…/exec)</b> 복사<br>
       <small>Code.gs만 새로 바꿀 때는 <b>배포 관리 → ✏️ → 버전: 새 버전 → 배포</b> (주소가 그대로라 4번은 안 해도 돼요)</small></span></li>
     <li><b>웹 앱 주소 넣기</b><span>편집기 주소(…/edit)가 아니라 <b>…/exec</b>로 끝나는 주소예요.</span>
       <div class="pw-row" style="width:100%"><input class="inp" id="api-in" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(cur)}" onkeydown="if(event.key==='Enter')saveApi()">
@@ -1550,7 +1601,7 @@ function helperSteps(){
     <p>Apps Script에서 <b>파일 ＋ → HTML</b>, 이름 <b>Index</b>로 만들고 아래 버튼으로 복사한 내용을 붙여넣은 뒤 새 버전으로 배포하세요. 그러면 웹 앱 주소로 바로 열려요.</p>
     <button class="btn ghost sm" onclick="copyPageHtml(this)">📋 이 화면 HTML 복사 (Index용)</button></details>`;
 }
-function openHelper(){openModal(`<h3>🔧 설정 도우미</h3><p>Code.gs 복사, 구글 시트 연결 주소 바꾸기를 여기서 해요.${SERVER_V&&SERVER_V<NEED_SERVER_V?' <b style="color:#c2410c">지금 Code.gs가 예전 버전이에요 → 2·3번을 해 주세요.</b>':''}</p>${helperSteps()}`,'wide')}
+function openHelper(){openModal(`<h3>🔧 설정 도우미</h3><p>Code.gs 복사, 구글 시트 연결 주소 바꾸기를 여기서 해요.${SERVER_V&&SERVER_V<NEED_SERVER_V?' <b style="color:#c2410c">지금 Code.gs가 예전 버전이에요 → 2번과 3번을 해 주세요.</b>':''}</p>${helperSteps()}`,'wide')}
 function copyText(text,btn){
   const done=()=>{toast('📋 복사했어요! 붙여넣기(Ctrl+V) 하세요','good');if(btn){const t=btn.textContent;btn.textContent='✅ 복사됨';setTimeout(()=>btn.textContent=t,2000)}};
   const fallback=()=>{const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;left:-9999px;top:0';document.body.appendChild(ta);ta.select();
@@ -1580,14 +1631,13 @@ function serverBanner(){
 }
 function renderRole(){
   return `<div class="center-wrap"><div class="role-box">
-    <span class="eyebrow">GEOGRAPHY ESCAPE ROOM</span>
-    <h1>우리 반이 만드는<br><em>지리 방탈출</em></h1>
-    <p>모둠별로 대륙·주제의 탈출 방을 만들고, 다 함께 서로의 방을 탈출해요.<br>누구로 들어갈까요?</p>
+        <h1>우리 반이 만드는<br><em>지리 방탈출</em></h1>
+    <p>모둠별로 대륙이나 주제의 탈출 방을 만들고, 다 함께 서로의 방을 탈출해요.<br>누구로 들어갈까요?</p>
     <div class="role-grid">
       <button class="role-card s" onclick="chooseStudent()"><span class="ico">🧑‍🎓</span><b>학생</b><small>우리 모둠의 탈출 방을 만들고<br>다른 모둠의 방을 풀어요</small></button>
-      <button class="role-card t" onclick="askTeacher()"><span class="tag">🔐 비밀번호</span><span class="ico">👩‍🏫</span><b>선생님</b><small>게임 설정 · 타이머 · 출제 마감<br>점수판과 시상식을 진행해요</small></button>
+      <button class="role-card t" onclick="askTeacher()"><span class="tag">🔐 비밀번호</span><span class="ico">👩‍🏫</span><b>선생님</b><small>게임 설정, 타이머, 출제 마감<br>점수판과 시상식을 진행해요</small></button>
     </div>
-    <p class="credit">🗺️ 만든 사람 · 지리 교사 <b>이해림</b> 선생님</p></div></div>`;
+    <p class="credit">🗺️ 만든 사람: 지리 교사 <b>이해림</b> 선생님</p></div></div>`;
 }
 function chooseStudent(){ROLE='student';lsSet('gem.role','student');VIEW='setup';lsSet('gem.view','setup');firstLoad=true;render();refresh();startPolling()}
 function renderJoin(){
@@ -1602,7 +1652,7 @@ async function joinGame(){
   const i=$('#code-in');const code=(i.value||'').replace(/\D/g,'');if(code.length!==4)return toast('숫자 4자리를 입력해 주세요');
   if(joining)return;joining=true;const b=$('#code-btn');b.disabled=true;b.textContent='확인 중…';
   try{const r=await call('join',{code});CODE=code;lsSet('gem.code',code);firstLoad=true;CFG=null;NET.loaded=false;render();await refresh();startPolling();
-    toast(`🎉 ${[r.klass,r.title].filter(Boolean).join(' · ')}에 들어왔어요!`,'good')}
+    toast(`🎉 ${[r.klass,r.title].filter(Boolean).join(' ')}에 들어왔어요!`,'good')}
   catch(e){toast(/입장 코드/.test(e.message)?'입장 코드가 맞지 않아요. 다시 확인해 주세요':e.message,'bad');b.disabled=false;b.textContent='입장하기';i.value='';i.focus();
     i.parentElement.classList.remove('shake');void i.offsetWidth;i.parentElement.classList.add('shake')}
   finally{joining=false}
@@ -1628,7 +1678,7 @@ function joinCard(){
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn gold" onclick="openJoinScreen()">⛶ 칠판에 크게 띄우기</button><button class="btn glass sm" onclick="regenCode()">🔄 코드 바꾸기</button>${joinUrl()?`<button class="btn glass sm" onclick="copyJoinUrl()">🔗 주소 복사</button>`:''}</div></div></section>`;
 }
 function openJoinScreen(){
-  $('#bt-title').textContent=(CFG.klass?CFG.klass+' · ':'')+(CFG.title||'지리 방탈출');
+  $('#bt-title').textContent=(CFG.klass?CFG.klass+'  ':'')+(CFG.title||'지리 방탈출');
   const box=$('#bigtimer');box.classList.add('join-mode');
   $('#bt-groups').innerHTML=`<div class="join-big"><div class="qr-big" id="qr-big"></div><div><div class="jb-label">입장 코드</div><div class="jb-code">${CFG.joinCode}</div>
     <ol class="jb-steps"><li>카메라로 QR 코드 찍기</li><li><b>🧑‍🎓 학생</b> 누르기</li><li>입장 코드 <b>${CFG.joinCode}</b> 입력</li></ol></div></div>`;
@@ -1667,16 +1717,16 @@ function openMenu(){
   if(!ROLE)return;
   const t=isT();
   openModal(`<h3>${t?'👩‍🏫 선생님 메뉴':'🧑‍🎓 학생 메뉴'}</h3><p>${NET.ok?'🟢 구글 시트와 연결되어 있어요.':'🔴 연결이 끊겼어요: '+esc(NET.err||'')}</p><div class="menu-list">
-    ${t?`<button onclick="closeModal();openJoinScreen()"><span>🔑</span><div>학생 입장 안내 크게 보기<small>입장 코드 ${esc(CFG&&CFG.joinCode||'')} · QR 코드</small></div></button>
+    ${t?`<button onclick="closeModal();openJoinScreen()"><span>🔑</span><div>학생 입장 안내 크게 보기<small>입장 코드 ${esc(CFG&&CFG.joinCode||'')}와 QR 코드</small></div></button>
       <button onclick="closeModal();regenCode()"><span>🔄</span><div>입장 코드 새로 만들기<small>들어와 있던 학생들은 새 코드를 다시 입력해요</small></div></button>
       <button onclick="closeModal();openBigTimer()"><span>⏱️</span><div>타이머 크게 보기<small>프로젝터 화면용</small></div></button>
       <button onclick="saveScoresNow()"><span>📊</span><div>점수판 시트에 지금 기록<small>‘점수판_${esc(CFG.klass||'학급미지정')}’ 탭 (점수가 바뀌면 자동으로도 기록돼요)</small></div></button>
       <button onclick="closeModal();loadDemo()"><span>🎮</span><div>예시 방 4개 넣기<small>1~4모둠에 예시 문제를 넣어 흐름을 체험해요</small></div></button>
-      <button onclick="closeModal();goView('setup')"><span>📚</span><div>학급 바꾸기 · 새 학급<small>1번 탭 맨 위 ‘저장된 학급’에서 반을 고르거나 새로 만들어요</small></div></button>
-      <button class="danger" onclick="resetPlayAsk()"><span>🧹</span><div>이번 게임 풀이 기록 지우기<small>문제는 두고 점수·별점·풀이를 지워요</small></div></button>`
+      <button onclick="closeModal();goView('setup')"><span>📚</span><div>학급 바꾸기, 새 학급<small>준비 탭 기본 정보의 ‘저장된 학급’에서 반을 고르거나 새로 만들어요</small></div></button>
+      <button class="danger" onclick="resetPlayAsk()"><span>🧹</span><div>이번 게임 풀이 기록 지우기<small>문제는 두고 점수와 별점, 풀이를 지워요</small></div></button>`
     :`<button onclick="closeModal();goView('setup')"><span>👥</span><div>우리 모둠 다시 고르기</div></button>
       <button onclick="closeModal();CODE='';lsDel('gem.code');CFG=null;firstLoad=true;render()"><span>🔑</span><div>입장 코드 다시 입력하기</div></button>`}
-    ${t?`<button onclick="closeModal();setTimeout(openHelper,50)"><span>🔧</span><div>설정 도우미${SERVER_V&&SERVER_V<NEED_SERVER_V?' ⚠️':''}<small>Code.gs 복사 · 구글 시트 연결 주소 바꾸기 · 처음 설정 안내</small></div></button>`:''}
+    ${t?`<button onclick="closeModal();setTimeout(openHelper,50)"><span>🔧</span><div>설정 도우미${SERVER_V&&SERVER_V<NEED_SERVER_V?' ⚠️':''}<small>Code.gs 복사, 구글 시트 연결 주소 바꾸기, 처음 설정 안내</small></div></button>`:''}
     <button onclick="logout()"><span>🚪</span><div>${t?'선생님 화면 나가기':'처음 화면으로'}<small>학생/선생님을 다시 골라요</small></div></button>
   </div>`);
 }
@@ -1684,16 +1734,15 @@ async function saveScoresNow(){try{await call('saveScores',{});toast('📊 점�
 /* ================= 저장된 학급 ================= */
 let CLASSES=[];
 function classBar(){
-  return `<section class="class-bar"><div class="cb-head"><span class="eyebrow">📚 저장된 학급</span>
-      <small>학급을 누르면 그 반의 모둠·문제·점수·입장 코드로 바뀌어요. 같은 링크로 여러 반에서 쓸 수 있어요.</small>
+  return `<div class="class-bar"><div class="cb-head"><label class="lb" style="margin:0">저장된 학급</label>
       <span class="sp"></span><button class="btn gold sm" onclick="newClassAsk()">＋ 새 학급</button></div>
-    <div class="cls-list" data-live="classes">${classesInner()}</div></section>`;
+    <div class="cls-list" data-live="classes">${classesInner()}</div></div>`;
 }
 function classesInner(){
-  if(!CLASSES.length)return `<p class="cls-empty">아직 저장된 학급이 없어요. 아래 <b>기본 정보</b>에 학급 이름을 넣으면 여기에 저장돼요.</p>`;
+  if(!CLASSES.length)return `<p class="cls-empty">아직 저장된 학급이 없어요.</p>`;
   return CLASSES.map((c,i)=>{const on=CFG&&c.gameId===CFG.gameId;
     return `<div class="cls ${on?'on':''}"><button class="cls-main" onclick="switchClass(${i})" ${on?'disabled':''} title="${on?'지금 사용 중':esc(c.klass)+'으로 바꾸기'}">
-      <b>${esc(c.klass)}</b><small>${on?'✔ 지금 사용 중':esc(c.phase||'준비')}${c.at?' · '+esc(c.at.slice(5,16).replace('-','/')):''}</small></button>
+      <b>${esc(c.klass)}</b><small>${on?'✔ 지금 사용 중':esc(String(c.phase||'준비').replace('문제 만들기','출제'))}${c.at?'  '+esc(c.at.slice(5,16).replace('-','/')):''}</small></button>
       <button class="cls-del" onclick="deleteClassAsk(${i})" title="${on?'사용 중인 학급은 지울 수 없어요':'학급 지우기'}" ${on?'disabled':''}>🗑</button></div>`}).join('');
 }
 async function flushSave(){if(saveT){clearTimeout(saveT);saveT=null;await saveCfgNow()}}
@@ -1708,7 +1757,7 @@ async function switchClass(i){
   try{await flushSave();const r=await call('switchClass',{klass:c.klass});afterGameChange(r,`📚 ${c.klass} 학급으로 바꿨어요`)}catch(e){toast(e.message,'bad')}
 }
 function newClassAsk(){
-  openModal(`<h3>＋ 새 학급</h3><p>지금 쓰는 출제 방식·모둠·규칙을 그대로 가져와서 새 학급을 만들어요. 문제·점수는 새로 시작하고, 입장 코드와 모둠 비밀번호도 새로 생겨요.<br>지금 학급(${esc(CFG.klass||'이름 없음')})은 그대로 저장돼 있어요.</p>
+  openModal(`<h3>＋ 새 학급</h3><p>지금 쓰는 출제 방식과 모둠, 규칙을 그대로 가져와서 새 학급을 만들어요. 문제와 점수는 새로 시작하고, 입장 코드와 모둠 비밀번호도 새로 생겨요.<br>지금 학급(${esc(CFG.klass||'이름 없음')})은 그대로 저장돼 있어요.</p>
   <label class="lb">새 학급 이름</label><input class="inp" id="ng-klass" placeholder="예: 1학년 6반" onkeydown="if(event.key==='Enter')newClass()">
   <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn ghost" onclick="closeModal()">취소</button><button class="btn gold" onclick="newClass()">새 학급 만들기</button></div>`);
   setTimeout(()=>{const i=$('#ng-klass');if(i)i.focus()},50);
@@ -1723,7 +1772,7 @@ async function newClass(){
 function deleteClassAsk(i){
   const c=CLASSES[i];if(!c)return;
   openModal(`<h3>🗑 ‘${esc(c.klass)}’ 학급을 지울까요?</h3><p>저장된 학급 목록에서 빠져요. <b>점수판_${esc(c.klass)}</b> 탭의 점수 기록은 시트에 그대로 남아요.</p>
-    <label style="display:flex;gap:8px;align-items:center;font-weight:700;margin-bottom:14px"><input type="checkbox" id="purge-cls"> 이 학급의 문제·사진·풀이 기록도 시트에서 지우기 (되돌릴 수 없어요)</label>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:700;margin-bottom:14px"><input type="checkbox" id="purge-cls"> 이 학급의 문제와 사진, 풀이 기록도 시트에서 지우기 (되돌릴 수 없어요)</label>
     <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn ghost" onclick="closeModal()">취소</button><button class="btn coral" onclick="deleteClass(${i})">지우기</button></div>`);
 }
 async function deleteClass(i){
@@ -1737,7 +1786,7 @@ function setKlass(el){
   if(ex>=0){el.value=prev;if(confirm(`‘${v}’ 학급은 이미 저장돼 있어요. 그 학급으로 바꿀까요?\n(지금 학급 이름은 그대로 둬요)`))switchClass(ex);return}
   CFG.klass=v;saveCfg(true);
 }
-function resetPlayAsk(){openModal(`<h3>🧹 풀이 기록을 지울까요?</h3><p>이번 게임의 점수·별점·풀이 기록이 모두 지워져요. 문제는 그대로 남아요. 되돌릴 수 없어요.</p>
+function resetPlayAsk(){openModal(`<h3>🧹 풀이 기록을 지울까요?</h3><p>이번 게임의 점수와 별점, 풀이 기록이 모두 지워져요. 문제는 그대로 남아요. 되돌릴 수 없어요.</p>
   <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn ghost" onclick="closeModal()">취소</button><button class="btn coral" onclick="resetPlay()">지우기</button></div>`)}
 async function resetPlay(){try{await call('resetPlay',{});closeModal();UI.awards=0;await refresh();LAST_SIG='';render();toast('🧹 풀이 기록을 지웠어요')}catch(e){toast(e.message,'bad')}}
 
@@ -1745,15 +1794,13 @@ async function resetPlay(){try{await call('resetPlay',{});closeModal();UI.awards
 function tSetup(){
   const st=CFG.settings,T=targets(CFG.mode);
   return `<div class="page">
-  ${classBar()}
   <section class="hero"><div>
-      <span class="eyebrow">STEP 1 · 게임 준비 (선생님 화면)</span>
       <h1>오늘의 <em>지리 방탈출</em>을<br>함께 정해요</h1>
-      <p>출제 방식·모둠·규칙을 정하면 <b>바로 구글 시트에 저장</b>되고, 학생 기기에서 모둠을 고를 수 있어요. 준비가 끝나면 아래 <b>문제 만들기 시작</b>을 눌러 주세요.</p>
-      <div class="flow"><span><b>1</b> 모둠·담당 정하기</span><span><b>2</b> ${st.makeMin}분 문제 제작</span><span><b>3</b> 마감 → 다 함께 방탈출</span><span><b>4</b> 시상식 🏆</span></div>
+      <p>출제 방식과 모둠, 규칙을 정하면 <b>바로 구글 시트에 저장</b>되고, 학생 기기에서 모둠을 고를 수 있어요. 준비가 끝나면 아래 <b>출제 시작</b>을 눌러 주세요.</p>
+      <div class="flow"><span><b>1</b> 준비</span><span><b>2</b> 출제 ${st.makeMin}분</span><span><b>3</b> 방탈출</span><span><b>4</b> 시상식 🏆</span></div>
     </div><div class="hero-art"><div class="orbit"><span>🔐</span><span>🗝️</span><span>🧭</span></div><div class="globe">🌏</div></div></section>
   ${joinCard()}
-  ${CFG.phase!=='setup'?`<div class="banner info"><div>ℹ️<b>지금 단계: ${PHASE_KO[CFG.phase]}</b><small>모둠 이름·담당을 바꾸면 학생 화면에도 바로 반영돼요. 모둠 수를 줄이면 그 모둠의 방은 보이지 않게 돼요.</small></div></div>`:''}
+  ${CFG.phase!=='setup'?`<div class="banner info"><div>ℹ️<b>지금 단계: ${PHASE_KO[CFG.phase]}</b><small>모둠 이름이나 주제를 바꾸면 학생 화면에도 바로 반영돼요. 모둠 수를 줄이면 그 모둠의 방은 보이지 않게 돼요.</small></div></div>`:''}
   <div class="setup-grid">
     <section class="card"><h2>📝 기본 정보</h2>
       <label class="lb">게임 이름</label><input class="inp" value="${esc(CFG.title)}" oninput="CFG.title=this.value;saveCfg()">
@@ -1761,31 +1808,31 @@ function tSetup(){
         <div><label class="lb">학급 (점수판 탭 이름)</label><input class="inp" placeholder="예: 1학년 5반" value="${esc(CFG.klass)}" onchange="setKlass(this)" onkeydown="if(event.key==='Enter')this.blur()"></div>
         <div><label class="lb">선생님 이름 (상장용)</label><input class="inp" placeholder="예: 이해림" value="${esc(CFG.teacher)}" oninput="CFG.teacher=this.value;saveCfg()"></div>
       </div>
-      <p class="help">상장에는 “${esc(CFG.klass||'1학년 5반')}${josa(CFG.klass||'1학년 5반','을','를')} 아끼는 ${esc(CFG.teacher||'이해림')} 선생님”으로 들어가요.</p><div>
-      </div></section>
+      ${classBar()}
+      </section>
     <section class="card"><h2>🧭 출제 방식</h2><div class="modes">
-      <button class="mode ${CFG.mode==='continent'?'on':''}" onclick="setMode('continent')"><span class="m-ico">🌍</span><b>대륙별 문제</b><small>모둠마다 대륙 하나를 맡아 그 대륙의 기후·지형·문화를 문제로 만들어요.</small><div class="chips">${CONTINENTS.map(t=>`<span class="chip">${t.emoji} ${t.name}</span>`).join('')}</div></button>
+      <button class="mode ${CFG.mode==='continent'?'on':''}" onclick="setMode('continent')"><span class="m-ico">🌍</span><b>대륙별 문제</b><small>모둠마다 대륙 하나를 맡아 그 대륙의 기후, 지형, 문화를 문제로 만들어요.</small><div class="chips">${CONTINENTS.map(t=>`<span class="chip">${t.emoji} ${t.name}</span>`).join('')}</div></button>
       <button class="mode ${CFG.mode==='topic'?'on':''}" onclick="setMode('topic')"><span class="m-ico">📚</span><b>주제별 문제</b><small>모둠마다 지리 주제 하나를 맡아 전 세계를 넘나드는 문제를 만들어요.</small><div class="chips">${TOPICS.map(t=>`<span class="chip">${t.emoji} ${t.name}</span>`).join('')}</div></button>
     </div></section>
-    <section class="card span2"><h2>👥 모둠과 담당 ${CFG.mode==='topic'?'주제':'대륙'} <span class="sp"></span>
+    <section class="card span2"><h2>👥 모둠과 ${CFG.mode==='topic'?'주제':'대륙'} <span class="sp"></span>
       <span class="counter"><button onclick="setGroupCount(CFG.groups.length-1)">−</button><b>${CFG.groups.length}모둠</b><button onclick="setGroupCount(CFG.groups.length+1)">＋</button></span>
       <button class="btn ghost sm" onclick="shuffleTargets()">🎲 랜덤 배정</button></h2>
       <div class="groups">${CFG.groups.map(g=>`<div class="g-row" style="--gc:${g.color}">
         <button class="g-emoji" onclick="cycleEmoji('${g.id}')" title="눌러서 바꾸기">${g.emoji}</button>
         <input class="inp g-name" value="${esc(g.name)}" placeholder="모둠 이름" oninput="setG('${g.id}','name',this.value)" aria-label="모둠 이름">
         <span class="pin-badge" title="모둠 비밀번호">🔒 ${UI.showPins&&g.pin?g.pin:'••••'}</span>
-        <select class="inp g-target" onchange="setG('${g.id}','target',this.value)" aria-label="담당">${T.map(t=>`<option value="${t.key}" ${t.key===g.target?'selected':''}>담당 · ${t.emoji} ${t.name}</option>`).join('')}</select></div>`).join('')}</div>
+        <select class="inp g-target" onchange="setG('${g.id}','target',this.value)" aria-label="${CFG.mode==='topic'?'주제':'대륙'}">${T.map(t=>`<option value="${t.key}" ${t.key===g.target?'selected':''}>${t.emoji} ${t.name}</option>`).join('')}</select></div>`).join('')}</div>
       <div class="pin-bar"><p class="help" style="margin:0">동물 아이콘을 누르면 바뀌어요. 학생들은 자기 모둠을 고른 뒤 <b>모둠 비밀번호</b>를 입력해야 들어갈 수 있어요.</p>
         <span class="sp"></span><button class="btn ghost sm" onclick="UI.showPins=!UI.showPins;render()">${UI.showPins?'🙈 비밀번호 숨기기':'👁 모둠 비밀번호 보기'}</button>
         <button class="btn ghost sm" onclick="openPins()">🖨️ 비밀번호 쪽지 인쇄</button></div></section>
     <section class="card span2"><h2>⚙️ 규칙 설정</h2><div class="settings">
-      ${setBox('makeMin','문제 만들기 시간','분','기본 30분',1,120)}${setBox('goal','모둠당 자물쇠(문제) 수','개','권장 개수',1,15)}
+      ${setBox('makeMin','출제 시간','분','기본 30분',1,120)}${setBox('goal','모둠당 자물쇠(문제) 수','개','권장 개수',1,15)}
       ${setBox('points','문제 1개 기본 점수','점','문제마다 따로 바꿀 수 있어요',1,100)}${setBox('hintRate','힌트를 보면 점수','%','50이면 절반만 받아요',0,100)}
       ${setBox('starBonus','받은 별점 1개당 보너스','점','다른 모둠이 준 별점 평균 × 이 점수',0,50)}${setBox('qSec','문제당 풀이 시간(선생님 진행)','초','0이면 타이머 없음',0,600)}
-    </div><p class="help">학생 기기 풀이의 정답 기회: O/X 1번 · 객관식 2번 · 단답형·숫자 자물쇠 3번</p></section>
+    </div><p class="help">학생 기기 풀이의 정답 기회는 O/X 1번, 객관식 2번, 단답형과 숫자 자물쇠 3번이에요.</p></section>
   </div>
   <div class="cta-bar"><span class="note">💡 학생들은 QR을 찍고 <b>🧑‍🎓 학생 → 입장 코드</b>를 입력한 뒤 자기 모둠을 고르면 돼요.</span>
-    ${CFG.phase==='setup'?`<button class="btn gold big" onclick="startMaking()">✍️ 문제 만들기 시작 →</button>`:`<button class="btn gold big" onclick="goView('make')">② 문제 만들기 화면으로 →</button>`}</div></div>`;
+    ${CFG.phase==='setup'?`<button class="btn gold big" onclick="startMaking()">✍️ 출제 시작 →</button>`:`<button class="btn gold big" onclick="goView('make')">② 출제 화면으로 →</button>`}</div></div>`;
 }
 function setBox(k,label,unit,small,min,max){return `<div class="set"><label>${label}</label><div class="row"><input type="number" min="${min}" max="${max}" value="${CFG.settings[k]}" onchange="setSetting('${k}',this.value,${min},${max})"><span>${unit}</span></div><small>${small}</small></div>`}
 function setSetting(k,v,min,max){v=Math.max(min,Math.min(max,Math.round(+v||0)));CFG.settings[k]=v;if(k==='makeMin'&&!CFG.timer.running){CFG.timer.total=v*60;CFG.timer.remaining=v*60}saveCfg();render()}
@@ -1795,22 +1842,22 @@ function cycleEmoji(id){const g=byId(id);g.emoji=EMO[(EMO.indexOf(g.emoji)+1)%EM
 function setGroupCount(n){n=Math.max(2,Math.min(8,n));
   if(n<CFG.groups.length){const rm=CFG.groups.slice(n);if(rm.some(g=>STATUS[g.id]&&STATUS[g.id].count)&&!confirm('줄어드는 모둠이 이미 문제를 보냈어요. 그래도 줄일까요?'))return;CFG.groups=CFG.groups.slice(0,n)}
   while(CFG.groups.length<n)CFG.groups.push(newGroup(CFG.groups.length,CFG.mode));saveCfg();render()}
-function shuffleTargets(){const T=[...targets(CFG.mode)].sort(()=>Math.random()-.5);CFG.groups.forEach((g,i)=>g.target=T[i%T.length].key);saveCfg();render();sfx.click();toast('🎲 담당을 랜덤으로 정했어요!')}
-function startMaking(){CFG.phase='make';CFG.timer={total:CFG.settings.makeMin*60,remaining:CFG.settings.makeMin*60,running:false,endAt:0};saveCfg(true);UI.makeSel=CFG.groups[0].id;goView('make');toast('✍️ 학생 기기에서 문제 만들기가 열렸어요','good')}
+function shuffleTargets(){const T=[...targets(CFG.mode)].sort(()=>Math.random()-.5);CFG.groups.forEach((g,i)=>g.target=T[i%T.length].key);saveCfg();render();sfx.click();toast('🎲 모둠별 주제를 랜덤으로 정했어요!')}
+function startMaking(){CFG.phase='make';CFG.timer={total:CFG.settings.makeMin*60,remaining:CFG.settings.makeMin*60,running:false,endAt:0};saveCfg(true);UI.makeSel=CFG.groups[0].id;goView('make');toast('✍️ 학생 기기에서 출제 화면이 열렸어요','good')}
 
 /* ================= 1. 우리 모둠 (학생) ================= */
 function sSetup(){
   const mine=myGroup();
   return `<div class="page">
-    <div class="board-head"><span class="eyebrow">STEP 1 · 우리 모둠 고르기</span><h1>👥 우리 모둠은?</h1>
-    <p>${CFG.phase==='setup'?'선생님이 모둠과 담당을 정하고 있어요. 우리 모둠을 미리 골라 두면, 문제 만들기가 시작될 때 바로 들어갈 수 있어요.':'우리 모둠을 고르고 문제 만들기로 이동하세요.'}</p></div>
+    <div class="board-head"><h1>👥 우리 모둠은?</h1>
+    <p>${CFG.phase==='setup'?'선생님이 모둠과 주제를 정하고 있어요. 우리 모둠을 미리 골라 두면, 출제가 시작될 때 바로 들어갈 수 있어요.':'우리 모둠을 고르고 출제 화면으로 이동하세요.'}</p></div>
     <div class="pick-cards" data-live="pick">${pickInner()}</div>
     <div class="cta-bar">${CFG.phase==='setup'?`<span class="note"><span class="live-dot"></span>선생님을 기다리는 중… 시작되면 자동으로 넘어가요</span>`:'<span></span>'}
       ${CFG.phase!=='setup'&&mine?`<button class="btn gold big" onclick="goView('${CFG.phase==='make'?'make':CFG.phase}')">${CFG.phase==='make'?'✍️ 우리 방 만들러 가기 →':CFG.phase==='play'?'🔐 방탈출 하러 가기 →':'🏆 시상식 보기 →'}</button>`:''}</div></div>`;
 }
 function pickInner(){const mine=myGroup();return CFG.groups.map(g=>{const t=targetOf(g),s=STATUS[g.id]||{};
   return `<button class="pick-card ${g.id===mine?'on':''}" style="--c:${t.color}" onclick="pickGroup('${g.id}')">${g.id===mine?'<span class="ck">✓</span>':''}
-    <span class="pe">${g.emoji}</span><b>${esc(g.name)}</b><small>${t.emoji} ${t.name} 담당${s.count?` · 자물쇠 ${s.count}개 제출`:''}</small></button>`}).join('')}
+    <span class="pe">${g.emoji}</span><b>${esc(g.name)}</b><small>${t.emoji} ${t.name}${s.count?`<br>자물쇠 ${s.count}개 제출`:''}</small></button>`}).join('')}
 function pickGroup(gid){
   const prev=myGroup();if(prev===gid)return;
   if(prev&&getDraft(prev)&&getDraft(prev)._dirty&&!confirm('지금 모둠에 아직 보내지 않은 문제가 있어요. 그래도 바꿀까요? (이 기기에 저장된 내용은 남아 있어요)'))return;
@@ -1855,10 +1902,10 @@ setInterval(()=>{
   if(QTM.running){const qr=(QTM.endAt-Date.now())/1000;if(qr<=0){QTM.running=false;QTM.remaining=0;QTM.done=true;sfx.wrong()}else if(qr<=5&&Math.ceil(qr)!==QTM.last){QTM.last=Math.ceil(qr);sfx.tick()}}
   updateTimerDom();
 },250);
-function timeUp(){openModal(`<div class="timeup"><div class="t-ico">⏰</div><h3>문제 만들기 시간 끝!</h3><p>모둠마다 <b>📨 선생님께 전송</b>을 눌렀는지 확인해 주세요.<br>모두 보냈다면 출제를 마감하고 방탈출을 시작해요.</p>
+function timeUp(){openModal(`<div class="timeup"><div class="t-ico">⏰</div><h3>출제 시간 끝!</h3><p>모둠마다 <b>📨 선생님께 전송</b>을 눌렀는지 확인해 주세요.<br>모두 보냈다면 출제를 마감하고 방탈출을 시작해요.</p>
   <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><span class="t-step light"><input type="number" min="1" max="120" value="${tStep()}" data-tstep onchange="setTStep(this.value)"><span>분</span></span><button class="btn ghost" onclick="const m=readTStep();tAdd(m);tToggle();closeModal();toast('⏱ '+m+'분 연장했어요','good')">연장하고 다시 시작</button><button class="btn gold" onclick="closeModal();closeBigTimer();closeMaking()">🔒 출제 마감하기</button></div></div>`)}
-function openBigTimer(){if(!CFG)return;$('#bigtimer').classList.remove('join-mode');$('#bt-title').textContent=(CFG.title||'지리 방탈출')+' · 문제 만들기 시간';
-  $('#bt-groups').innerHTML=CFG.groups.map(g=>{const s=STATUS[g.id]||{};return `<span>${g.emoji} ${esc(g.name)} · ${targetOf(g).emoji} ${targetOf(g).name} <b>${s.count||0}/${CFG.settings.goal}</b></span>`}).join('');
+function openBigTimer(){if(!CFG)return;$('#bigtimer').classList.remove('join-mode');$('#bt-title').textContent=(CFG.title||'지리 방탈출')+'  출제 시간';
+  $('#bt-groups').innerHTML=CFG.groups.map(g=>{const s=STATUS[g.id]||{};return `<span>${g.emoji} ${esc(g.name)}  ${targetOf(g).emoji} ${targetOf(g).name} <b>${s.count||0}/${CFG.settings.goal}</b></span>`}).join('');
   renderBigCtrl();$('#bigtimer').hidden=false;updateTimerDom()}
 function renderBigCtrl(){$('#bt-ctrl').innerHTML=(isT()?`<button class="btn gold big" data-timer-toggle onclick="tToggle()">▶ 시작</button>${stepCtrl('big')}`:'')+`<button class="btn glass big" onclick="closeBigTimer()">✕ 닫기</button>`;updateTimerDom()}
 /* 시간 더하기·빼기: 선생님이 분을 입력하고 ＋/− */
@@ -1877,16 +1924,16 @@ function tMake(){
   if(!byId(UI.makeSel))UI.makeSel=CFG.groups[0].id;
   const total=Object.values(STATUS).reduce((a,s)=>a+(s.count||0),0),sent=CFG.groups.filter(g=>(STATUS[g.id]||{}).count).length;
   return `<div class="page">
-  ${CFG.phase==='setup'?`<div class="banner info"><div>ℹ️<b>아직 학생 화면에서 문제 만들기가 열리지 않았어요</b><small>시작하면 학생 기기에 문제 만들기 화면이 열리고 타이머를 쓸 수 있어요.</small></div><span class="sp"></span><button class="btn gold" onclick="startMaking()">✍️ 문제 만들기 시작</button></div>`:''}
+  ${CFG.phase==='setup'?`<div class="banner info"><div>ℹ️<b>아직 학생 화면에서 출제가 열리지 않았어요</b><small>시작하면 학생 기기에 출제 화면이 열리고 타이머를 쓸 수 있어요.</small></div><span class="sp"></span><button class="btn gold" onclick="startMaking()">✍️ 출제 시작</button></div>`:''}
   ${phaseAtLeast('play')?`<div class="banner live"><div>🔒<b>출제가 마감됐어요</b><small>학생 기기에서는 더 이상 문제를 보낼 수 없어요. 선생님은 계속 고칠 수 있어요.</small></div><span class="sp"></span><button class="btn glass sm" onclick="reopenMaking()">출제 다시 열기</button></div>`:''}
   <section class="timer-panel">
-    <div><span class="eyebrow">STEP 2 · 문제 만들기</span><h2>모둠별 탈출 방 만들기</h2>
+    <div><h2>모둠별 탈출 방 만들기</h2>
       <p>학생 기기에서 <b>📨 전송</b>하면 구글 시트에 저장되고 여기에 바로 나타나요.<br><span data-live="status">${statusInner()}</span></p>
-      ${CFG.joinCode?`<span class="code-chip" style="margin-top:10px" onclick="openJoinScreen()" title="학생 입장 안내 크게 보기">🔑 입장 코드 ${CFG.joinCode} · QR</span>`:''}</div>
+      ${CFG.joinCode?`<span class="code-chip" style="margin-top:10px" onclick="openJoinScreen()" title="학생 입장 안내 크게 보기">🔑 입장 코드 ${CFG.joinCode}  QR</span>`:''}</div>
     <div class="timer-box"><div class="timer-digits" data-timer>00:00</div><div class="timer-bar"><i data-timer-bar></i></div></div>
     <div class="timer-ctrl"><button class="btn gold wide" data-timer-toggle onclick="tToggle()">▶ 시작</button>
       ${stepCtrl()}<button class="btn glass sm" onclick="tReset()">↺ 처음</button><button class="btn glass sm" onclick="openBigTimer()">⛶ 크게</button>
-      ${CFG.phase==='make'?`<button class="btn coral wide" onclick="closeMaking()">🔒 출제 마감 · 풀이 시작</button>`:''}</div>
+      ${CFG.phase==='make'?`<button class="btn coral wide" onclick="closeMaking()">🔒 출제 마감하고 방탈출 시작</button>`:''}</div>
   </section>
   <div class="make-grid">
     <aside class="side"><div class="g-tabs" data-live="gtabs">${gtabsInner()}</div>
@@ -1896,14 +1943,14 @@ function tMake(){
   </div></div>`;
 }
 function statusInner(){const total=Object.values(STATUS).reduce((a,s)=>a+(s.count||0),0),sent=CFG.groups.filter(g=>(STATUS[g.id]||{}).count).length;
-  return `<span class="live-dot"></span>${CFG.groups.length}모둠 중 <b>${sent}모둠</b> 전송 · 자물쇠 총 <b>${total}개</b>`}
+  return `<span class="live-dot"></span>${CFG.groups.length}모둠 중 <b>${sent}모둠</b> 전송, 자물쇠 총 <b>${total}개</b>`}
 function gtabsInner(){const goal=CFG.settings.goal;return CFG.groups.map(x=>{const t=targetOf(x),s=STATUS[x.id]||{},n=s.count||0;
   return `<button class="g-tab ${x.id===UI.makeSel?'on':''}" style="--gc:${x.color}" onclick="selectMake('${x.id}')">
-    <span class="gt-emoji">${x.emoji}</span><span class="gt-text"><b>${esc(x.name)}${TDRAFT[x.id]?' ✏️':''}</b><small>${t.emoji} ${t.name}${s.at?' · '+s.at.slice(11,16)+' 전송':' · 아직 안 보냄'}</small></span>
+    <span class="gt-emoji">${x.emoji}</span><span class="gt-text"><b>${esc(x.name)}${TDRAFT[x.id]?' ✏️':''}</b><small>${t.emoji} ${t.name}${s.at?'  '+s.at.slice(11,16)+' 전송':'  아직 안 보냄'}</small></span>
     <span class="gt-count ${n>=goal?'ok':''}">${n>=goal?'✓ '+n:n+'/'+goal}</span></button>`}).join('')}
 function selectMake(gid){UI.makeSel=gid;patch('gtabs',gtabsInner);patch('editor',()=>renderEditor(gid))}
 function tipsBox(){return `<div class="side-box"><h4>✨ 좋은 문제 만드는 팁</h4><ul>
-  <li>위치·기후·지형·문화·산업을 골고루!</li><li>정답이 하나로 딱 떨어지게 만들기</li>
+  <li>위치, 기후, 지형, 문화, 산업을 골고루!</li><li>정답이 하나로 딱 떨어지게 만들기</li>
   <li>단답형은 인정할 답을 쉼표로 모두 적기<br><small>예) 히말라야, 히말라야산맥</small></li>
   <li>O/X는 정답 버튼(O 또는 X)을 꼭 누르기</li><li>숫자 자물쇠: 여러 답을 이어 붙이면 재미 2배</li><li>힌트는 정답 대신 '단서'를 주기</li></ul></div>`}
 async function closeMaking(){
@@ -1912,7 +1959,7 @@ async function closeMaking(){
   CFG.phase='play';if(CFG.timer.running){CFG.timer.remaining=remain();CFG.timer.running=false}
   await saveCfgNow();UI.room=null;goView('play');sfx.fanfare();toast('🔓 학생 기기에서 방탈출이 시작됐어요!','good');
 }
-async function reopenMaking(){if(!confirm('출제를 다시 열까요? 학생 기기의 방탈출 화면이 닫히고 문제 만들기로 돌아가요.'))return;CFG.phase='make';await saveCfgNow();render()}
+async function reopenMaking(){if(!confirm('출제를 다시 열까요? 학생 기기의 방탈출 화면이 닫히고 출제로 돌아가요.'))return;CFG.phase='make';await saveCfgNow();render()}
 
 /* 학생 문제 만들기 */
 function sMake(){
@@ -1920,7 +1967,7 @@ function sMake(){
   if(CFG.phase!=='make')return `<div class="center-wrap"><div class="wait-card"><span class="w-ico">🔒</span><h2>출제가 마감됐어요</h2><p>이제 다른 모둠이 만든 방을 탈출할 차례예요!</p><button class="btn gold big" onclick="goView('play')">🔐 방탈출 하러 가기</button></div></div>`;
   return `<div class="page">
   <section class="timer-panel" style="grid-template-columns:1fr auto">
-    <div><span class="eyebrow">STEP 2 · 문제 만들기</span><h2>${g.emoji} ${esc(g.name)}의 ${t.name} 방</h2>
+    <div><h2>${g.emoji} ${esc(g.name)}의 ${t.name} 방</h2>
       <p>자물쇠(문제)를 <b>${CFG.settings.goal}개</b> 이상 만들고 <b>📨 선생님께 전송</b>을 눌러 주세요. 여러 번 보내도 마지막에 보낸 것이 저장돼요.</p></div>
     <div class="timer-box"><div class="timer-digits" data-timer>00:00</div><div class="timer-bar"><i data-timer-bar></i></div><p style="margin-top:6px" data-timer-state></p></div>
   </section>
@@ -1956,11 +2003,11 @@ function renderEditor(gid){
 function sendBarInner(gid){
   const room=edGet(gid),n=room.questions.length,bad=room.questions.filter(q=>qWarn(q)).length;
   if(isT()){const s=STATUS[gid]||{};
-    return `<div class="st ${TDRAFT[gid]?'st-warn':'st-ok'}">${TDRAFT[gid]?'✏️ 선생님이 고친 내용이 아직 저장되지 않았어요':s.count?`✅ 시트에 저장된 자물쇠 ${s.count}개`:'아직 이 모둠이 보낸 문제가 없어요'}<small>${s.at?'마지막 저장 '+s.at:''}${bad?` · ⚠ 미완성 ${bad}개`:''}</small></div>
+    return `<div class="st ${TDRAFT[gid]?'st-warn':'st-ok'}">${TDRAFT[gid]?'✏️ 선생님이 고친 내용이 아직 저장되지 않았어요':s.count?`✅ 시트에 저장된 자물쇠 ${s.count}개`:'아직 이 모둠이 보낸 문제가 없어요'}<small>${s.at?'마지막 저장 '+s.at:''}${bad?`  ⚠ 미완성 ${bad}개`:''}</small></div>
       ${TDRAFT[gid]?`<button class="btn ghost sm" onclick="discardT('${gid}')">↺ 되돌리기</button>`:''}<button class="btn gold" onclick="sendRoom('${gid}')" ${n?'':'disabled'}>💾 시트에 저장</button>`}
   const s=STATUS[gid]||{},fresh=newFromOthers();
   return `<div class="st ${room._dirty?'st-warn':(s.count?'st-ok':'')}">${room._dirty?'✏️ 아직 보내지 않은 변경이 있어요':s.count?`✅ 우리 모둠 자물쇠 ${s.count}개가 선생님께 가 있어요`:'아직 보내지 않았어요'}
-    <small>${s.at?'마지막 전송 '+s.at.slice(11):'만든 내용은 이 기기에 자동 저장돼요'}${bad?` · ⚠ 미완성 자물쇠 ${bad}개`:''}</small>
+    <small>${s.at?'마지막 전송 '+s.at.slice(11):'만든 내용은 이 기기에 자동 저장돼요'}${bad?`  ⚠ 미완성 자물쇠 ${bad}개`:''}</small>
     ${fresh?`<span class="fresh">📥 친구가 다른 기기로 보낸 자물쇠 ${fresh}개가 있어요 → ☁️ 불러오기</span>`:''}</div>
     <button class="btn ${fresh?'mint':'ghost'} sm" onclick="loadServerCopy()">☁️ 모둠 문제 불러오기</button>
     <button class="btn gold big" id="send-btn" onclick="sendRoom('${gid}')" ${n||(room._base||[]).length?'':'disabled'}>📨 선생님께 전송</button>`;
@@ -1984,7 +2031,7 @@ function renderQEdit(gid,q,i,t){
   else if(q.type==='ox'){const a=oxNorm(q.answer);ans=`<label class="lb">정답 (꼭 눌러 주세요)</label><div class="ox-pick"><button class="${a==='O'?'on':''}" onclick="setQ('${gid}','${id}','answer','O',true)">O</button><button class="${a==='X'?'on':''}" onclick="setQ('${gid}','${id}','answer','X',true)">X</button>${a!=='O'&&a!=='X'?'<span class="need">👈 정답이 O인지 X인지 눌러 주세요</span>':''}</div>`}
   else if(q.type==='short')ans=`<label class="lb">정답 <span style="font-weight:400">— 인정할 답이 여러 개면 쉼표(,)로 구분</span></label><input class="inp" value="${esc(q.answer)}" placeholder="예: 사하라, 사하라 사막" oninput="setQ('${gid}','${id}','answer',this.value)">`;
   else ans=`<label class="lb">자물쇠 비밀번호 (숫자)</label><input class="inp" inputmode="numeric" style="font-family:var(--display);font-size:24px;letter-spacing:.3em" value="${esc(q.answer)}" placeholder="예: 325" oninput="this.value=this.value.replace(/[^0-9]/g,'');setQ('${gid}','${id}','answer',this.value)">
-    <p class="help">여러 문제의 답(숫자)을 이어 붙이거나, 글자 수·순서를 숫자로 바꿔 비밀번호를 만들어요.</p>`;
+    <p class="help">여러 문제의 답(숫자)을 이어 붙이거나, 글자 수나 순서를 숫자로 바꿔 비밀번호를 만들어요.</p>`;
   const imgVal=q.image&&/^https?:/.test(q.image)?q.image:'';
   return `<div class="q-card" style="--c:${t.color}">
     <div class="q-head"><span class="lock-no"><i>🔒</i>자물쇠 ${i+1}</span>
@@ -1998,7 +2045,7 @@ function renderQEdit(gid,q,i,t){
       <div><label class="lb">💡 힌트 (선택)</label><input class="inp" value="${esc(q.hint)}" placeholder="정답 대신 단서를 주세요" oninput="setQ('${gid}','${id}','hint',this.value)"></div>
       <div><label class="lb">⭐ 점수 (비우면 ${CFG.settings.points}점)</label><input class="inp" type="number" min="1" max="100" value="${esc(q.points)}" placeholder="${CFG.settings.points}" oninput="setQ('${gid}','${id}','points',this.value)"></div>
     </div>
-    <label class="lb">🖼️ 사진·지도 (선택)</label>
+    <label class="lb">🖼️ 사진이나 지도 (선택)</label>
     <div class="img-row"><input class="inp" value="${esc(imgVal)}" placeholder="${q.image&&!imgVal?'(올린 사진 사용 중)':'이미지 주소(URL) 붙여넣기'}" onchange="setQ('${gid}','${id}','image',this.value.trim(),true)">
       <label class="btn ghost sm" style="cursor:pointer">📷 사진 올리기<input type="file" accept="image/*" hidden onchange="uploadImg('${gid}','${id}',this)"></label>
       ${q.image?`${imgTag(q,'thumb')}<button class="mini" title="사진 빼기" onclick="setQ('${gid}','${id}','image','',true)">✕</button>`:''}</div>
@@ -2030,7 +2077,7 @@ function openOrder(gid){openModal(`<h3>↕ 자물쇠 순서 바꾸기</h3><p>▲
   <div id="ord-list" class="ord-list">${orderList(gid)}</div><div style="text-align:right;margin-top:14px"><button class="btn gold" onclick="closeModal()">완료</button></div>`,'',()=>rerenderEditor(gid))}
 /* 교사: 모둠 비밀번호 보기 · 쪽지 인쇄 */
 function openPins(){
-  const rows=CFG.groups.map(g=>{const t=targetOf(g);return `<div class="pin-slip"><div class="ps-g">${g.emoji} ${esc(g.name)}</div><div class="ps-t">${t.emoji} ${t.name} 담당</div><div class="ps-pin">${g.pin||'----'}</div><div class="ps-help">입장 코드 ${CFG.joinCode||''} → 우리 모둠 → 이 비밀번호</div></div>`}).join('');
+  const rows=CFG.groups.map(g=>{const t=targetOf(g);return `<div class="pin-slip"><div class="ps-g">${g.emoji} ${esc(g.name)}</div><div class="ps-t">${t.emoji} ${t.name}</div><div class="ps-pin">${g.pin||'----'}</div><div class="ps-help">입장 코드 ${CFG.joinCode||''} → 우리 모둠 → 이 비밀번호</div></div>`}).join('');
   openModal(`<h3>🔒 모둠 비밀번호</h3><p>잘라서 모둠마다 한 장씩 나눠 주세요. 칠판(프로젝터)에는 띄우지 마세요.</p>
     <div id="cert"><div class="pin-grid">${rows}</div></div>
     <div class="cert-actions"><button class="btn ghost sm" onclick="regenPins()">🔄 모든 모둠 비밀번호 새로 만들기</button><button class="btn ink" onclick="window.print()">🖨️ 인쇄하기</button></div>`,'wide');
@@ -2078,7 +2125,7 @@ async function loadServerCopy(){
   if(localEdited&&!confirm('이 기기에서 고쳤지만 아직 안 보낸 내용은 시트에 있는 내용으로 바뀌어요.\n(이 기기에서 새로 만든 자물쇠는 그대로 남아요) 불러올까요?'))return;
   const nd={title:srv.title||d.title,story:srv.story||d.story,questions:[...srv.questions,...localNew],_base:srvIds,_dirty:localNew.length>0};
   putDraft(nd);const y=scrollY;render();scrollTo(0,y);
-  toast(`☁️ 모둠 문제 ${srv.questions.length}개를 올라온 순서대로 불러왔어요${localNew.length?` · 이 기기의 새 자물쇠 ${localNew.length}개는 뒤에 있어요`:''}`,'good');
+  toast(`☁️ 모둠 문제 ${srv.questions.length}개를 올라온 순서대로 불러왔어요${localNew.length?`. 이 기기의 새 자물쇠 ${localNew.length}개는 뒤에 있어요`:''}`,'good');
 }
 
 /* 예시 방 (교사) */
@@ -2091,9 +2138,9 @@ async function loadDemo(){
     ['asia','히말라야 비밀 사원','탐험대가 히말라야 고원의 비밀 사원에 갇혔다! 자물쇠 3개를 모두 열어야 탈출할 수 있다…',[
       Q('short','세계에서 가장 높은 산 에베레스트산이 있는 산맥은?','히말라야, 히말라야산맥, 히말라야 산맥','인도와 네팔, 중국(티베트) 사이에 있어요'),
       Q('mc','다음 중 동남아시아에 속하지 않는 나라는?','2','바다와 닿지 않은 내륙국이에요',['베트남','태국','몽골','인도네시아']),
-      Q('code','중국의 수도 베이징, 일본의 수도 도쿄, 몽골의 수도 울란바토르.\n각 수도 이름의 글자 수를 순서대로 입력하세요.','325','글자 수를 세어 보세요: 베·이·징 …')]],
+      Q('code','중국의 수도 베이징, 일본의 수도 도쿄, 몽골의 수도 울란바토르.\n각 수도 이름의 글자 수를 순서대로 입력하세요.','325','글자 수를 세어 보세요: 베, 이, 징 …')]],
     ['europe','알프스의 시계탑','시계탑의 종이 울리기 전에 유럽의 비밀을 풀어라!',[
-      Q('ox','유럽 연합(EU)에 가입한 모든 나라는 유로화를 사용한다.','X','덴마크·스웨덴의 화폐를 떠올려 보세요'),
+      Q('ox','유럽 연합(EU)에 가입한 모든 나라는 유로화를 사용한다.','X','덴마크와 스웨덴의 화폐를 떠올려 보세요'),
       Q('short','물의 도시라고 불리며 곤돌라로 유명한 이탈리아의 도시는?','베네치아, 베니스','영어로는 Venice'),
       Q('mc','알프스산맥이 지나가지 않는 나라는?','2','스칸디나비아반도에 있는 나라예요',['스위스','오스트리아','노르웨이','프랑스'])]],
     ['africa','사하라의 모래시계','모래시계의 모래가 다 떨어지기 전에 탈출하라!',[
@@ -2127,7 +2174,7 @@ async function adj(gid,d){try{await call('adjust',{group:gid,delta:d});await ref
 function resetUI(){Object.assign(UI,{intro:false,sel:null,input:'',revealed:false,hint:false,picked:[],escaped:false,unlock:false,busy:false})}
 function lockTrack(qs,qi,stateOf,doneRoom){return `<div class="lock-track">${qs.map((x,i)=>{const s=stateOf(x);return `<button class="lk ${s==='ok'?'open':s==='fail'?'fail':''} ${i===qi&&!UI.intro?'cur':''}" onclick="goQ(${i})"><span>${s==='ok'?'🔓':s==='fail'?'💥':'🔒'}</span><small>${i+1}</small></button>`}).join('<i class="lk-line"></i>')}<span class="lk-door">${doneRoom?'🚪✨':'🚪'}</span></div>`}
 function introStage(gid,t,n){const g=byId(gid),r=ROOMS[gid];return `<div class="q-stage intro" style="--c:${t.color}"><div class="intro-emoji">${t.emoji}</div>
-  <span class="eyebrow">${t.name} 방 · 출제 ${g.emoji} ${esc(g.name)}</span><h2>${esc(roomTitle(gid))}</h2>
+  <span class="eyebrow">${t.name} 방, 출제 ${g.emoji} ${esc(g.name)}</span><h2>${esc(roomTitle(gid))}</h2>
   <p class="story">${esc((r&&r.story)||`탐험대가 ${t.name}의 비밀 방에 갇혔다! 자물쇠 ${n}개를 모두 풀어야 탈출할 수 있다.`)}</p>
   <button class="btn gold big" onclick="startRoom()">🔦 입장하기</button></div>`}
 function starsHTML(gid,st){return `<div class="stars">${[1,2,3,4,5].map(n=>`<button class="${n<=st?'on':''}" onclick="rate('${gid}',${n})">★</button>`).join('')}</div><div class="rate-msg">${st?`✅ 별 ${st}개를 줬어요`:'별을 눌러 주세요'}</div>`}
@@ -2136,12 +2183,12 @@ let rateT=null;
 function paintStars(n,msg){document.querySelectorAll('.escape-card .stars button').forEach((b,i)=>b.classList.toggle('on',i<n));const m=document.querySelector('.escape-card .rate-msg');if(m)m.textContent=msg}
 function rate(gid,n){
   MYRECS=MYRECS.filter(x=>!(x.t==='star'&&x.r===gid)).concat([{t:'star',s:myGroup(),r:gid,q:'',c:false,p:n,a:0,h:false,src:'student'}]);
-  sfx.click();paintStars(n,`⭐ 별 ${n}개 · 저장하는 중…`);
+  sfx.click();paintStars(n,`⭐ 별 ${n}개 저장하는 중…`);
   clearTimeout(rateT);rateT=setTimeout(()=>sendRate(gid,n,false),350);
 }
 function tRate(gid,n){
   RECS=RECS.filter(x=>!(x.t==='star'&&x.s==='teacher'&&x.r===gid)).concat([{t:'star',s:'teacher',r:gid,q:'',c:false,p:n,a:0,h:false,src:'teacher'}]);
-  sfx.click();paintStars(n,`⭐ 별 ${n}개 · 저장하는 중…`);
+  sfx.click();paintStars(n,`⭐ 별 ${n}개 저장하는 중…`);
   clearTimeout(rateT);rateT=setTimeout(()=>sendRate(gid,n,true),350);
 }
 async function sendRate(gid,n,teacher){
@@ -2174,9 +2221,9 @@ function readInput(q){if(q.type==='mc'||q.type==='ox'){if(UI.sel===null){toast('
 function tPlay(){
   if(UI.room&&ROOMS[UI.room])return tRoom();
   return `<div class="page"><div class="play-grid"><section>
-    <div class="board-head"><span class="eyebrow">STEP 3 · 다 함께 방탈출 (선생님 화면)</span><h1>🗺️ 탈출 지도</h1>
-      ${CFG.joinCode?`<span class="code-chip" onclick="openJoinScreen()" title="학생 입장 안내 크게 보기">🔑 입장 코드 ${CFG.joinCode} · QR</span>`:''}</div>
-    ${CFG.phase==='setup'||CFG.phase==='make'?`<div class="banner info"><div>✍️<b>지금은 출제 중이에요</b><small>모둠이 전송한 방이 아래에 실시간으로 나타나요. 다 모이면 마감하세요.</small></div><span class="sp"></span>${CFG.phase==='make'?`<button class="btn coral" onclick="closeMaking()">🔒 출제 마감 · 풀이 시작</button>`:''}</div>`
+    <div class="board-head"><h1>🗺️ 탈출 지도</h1>
+      ${CFG.joinCode?`<span class="code-chip" onclick="openJoinScreen()" title="학생 입장 안내 크게 보기">🔑 입장 코드 ${CFG.joinCode}  QR</span>`:''}</div>
+    ${CFG.phase==='setup'||CFG.phase==='make'?`<div class="banner info"><div>✍️<b>지금은 출제 중이에요</b><small>모둠이 전송한 방이 아래에 실시간으로 나타나요. 다 모이면 마감하세요.</small></div><span class="sp"></span>${CFG.phase==='make'?`<button class="btn coral" onclick="closeMaking()">🔒 출제 마감하고 방탈출 시작</button>`:''}</div>`
       :`<div class="banner live"><div><span class="live-dot"></span><b>학생 기기에서 방탈출 진행 중</b><small>모둠이 맞히면 점수판과 진행 현황이 자동으로 바뀌어요. 방을 누르면 프로젝터로 함께 풀 수도 있어요.</small></div><span class="sp"></span><button class="btn glass sm" onclick="reopenMaking()">출제 다시 열기</button><button class="btn gold" onclick="goView('awards')">🏆 시상식으로</button></div>`}
     <div class="rooms" data-live="rooms">${roomsInner()}</div>
     <section class="card" style="margin-top:20px"><h2>📋 모둠별 진행 현황 <small style="font-family:var(--body);font-size:13px;color:var(--muted)">푼 자물쇠 / 전체</small></h2><div class="tbl-wrap" data-live="matrix">${matrixInner()}</div></section>
@@ -2192,7 +2239,7 @@ function roomsInner(){
       return `<button class="room-card" style="--c:${t.color}" onclick="openRoom('${g.id}')"><div class="rc-top"><span class="rc-emoji">${t.emoji}</span><span class="rc-lock">📺</span></div>
         <div class="rc-name">${t.name} 방</div><div class="rc-title">${esc(roomTitle(g.id))}</div>
         <div class="rc-dots">${r.questions.map(()=>'<i class="on"></i>').join('')}</div>
-        <div class="rc-by">출제 ${g.emoji} ${esc(g.name)} · 자물쇠 ${r.questions.length}개 · 탈출 ${esc_}모둠${sc.stars?` · ★${sc.stars}`:''}</div></button>`}).join('');
+        <div class="rc-by">출제 ${g.emoji} ${esc(g.name)}<br>자물쇠 ${r.questions.length}개, 탈출 ${esc_}모둠${sc.stars?`  ★${sc.stars}`:''}</div></button>`}).join('');
   }
   const me=myGroup();
   return roomGroups().map(g=>{const t=targetOf(g),r=ROOMS[g.id];
@@ -2202,7 +2249,7 @@ function roomsInner(){
     return `<button class="room-card" style="--c:${t.color}" onclick="openRoom('${g.id}')"><div class="rc-top"><span class="rc-emoji">${t.emoji}</span><span class="rc-lock">${done?'🔓':'🔒'}</span></div>
       <div class="rc-name">${t.name} 방</div><div class="rc-title">${esc(roomTitle(g.id))}</div>
       <div class="rc-dots">${states.map(s=>`<i class="${s==='ok'?'on':s==='fail'?'bad':''}"></i>`).join('')}</div>
-      <div class="rc-by">출제 ${g.emoji} ${esc(g.name)} · 정답 ${ok}/${r.questions.length}</div>
+      <div class="rc-by">출제 ${g.emoji} ${esc(g.name)}<br>정답 ${ok}/${r.questions.length}</div>
       ${done?`<div class="stamp">ESCAPED${myStar?`<small>${'★'.repeat(myStar)}</small>`:''}</div>`:''}</button>`}).join('')||`<p style="color:#fff">아직 방이 없어요.</p>`;
 }
 function matrixInner(){
@@ -2231,7 +2278,7 @@ function tRoom(){
     ${UI.unlock?'<div class="unlock-pop">🔓</div>':''}</div>`;
   const tStar=(RECS.find(r=>r.t==='star'&&r.s==='teacher'&&r.r===gid)||{}).p||0;
   return `<div class="page"><div class="play-grid"><section>
-    <div class="room-top"><button class="btn glass" onclick="backToBoard()">← 지도</button><div><div class="rt-name">${t.emoji} ${t.name} 방 <small style="font-size:14px;opacity:.7">📺 프로젝터 진행</small></div><div class="rt-by">${esc(roomTitle(gid))} · 출제 ${g.emoji} ${esc(g.name)}</div></div></div>
+    <div class="room-top"><button class="btn glass" onclick="backToBoard()">← 지도</button><div><div class="rt-name">${t.emoji} ${t.name} 방 <small style="font-size:14px;opacity:.7">📺 프로젝터 진행</small></div><div class="rt-by">${esc(roomTitle(gid))}  (출제 ${g.emoji} ${esc(g.name)})</div></div></div>
     ${lockTrack(qs,qi,x=>solvedBy(x.id)?'ok':'open',false)}${stage}
   </section>${scoreboard()}</div>
   ${UI.escaped?`<div class="overlay"><div class="escape-card" style="--c:${t.color}"><div class="esc-stamp anim">ESCAPED!</div><h2>${t.emoji} ${t.name} 방 탈출 성공!</h2>
@@ -2243,7 +2290,7 @@ function revealPanel(g,q,qi,n,pts){
   const alt=q.type==='short'?String(q.answer).split(/[,|]/).slice(1).map(s=>s.trim()).filter(Boolean):[];
   const device=RECS.filter(r=>r.t==='solve'&&r.q===q.id&&r.c&&r.src==='student').map(r=>r.s);
   return `<div style="margin-top:24px"><div class="answer-box"><span>정답</span><b>${esc(tAnswerText(q))}</b>${alt.length?`<small style="color:var(--muted)">(${esc(alt.join(', '))}도 정답)</small>`:''}</div>
-    <div class="award"><h4>✋ 맞힌 모둠을 모두 고르세요 <small>모둠당 +${pts}점 · 📱 = 학생 기기에서 이미 맞힘</small></h4>
+    <div class="award"><h4>✋ 맞힌 모둠을 모두 고르세요 <small>모둠당 +${pts}점, 📱 표시는 학생 기기에서 이미 맞힌 모둠</small></h4>
       <div class="award-groups">${CFG.groups.map(x=>{const own=x.id===g.id,dev=device.includes(x.id);return `<button class="ag ${UI.picked.includes(x.id)||dev?'on':''}" style="--gc:${x.color}" ${own||dev?'disabled':''} onclick="togglePick('${x.id}')">${x.emoji} ${esc(x.name)}${own?'<small>출제</small>':dev?'<small>📱</small>':''}</button>`}).join('')}</div>
       <div class="award-actions"><button class="btn ghost" onclick="pickAll()">모두 정답</button><button class="btn ghost" onclick="UI.picked=[];render()">선택 해제</button>
       <button class="btn gold big" id="award-btn" onclick="confirmScore()">${qi<n-1?'점수 주고 다음 자물쇠 →':'점수 주고 탈출! 🚪'}</button></div></div></div>`;
@@ -2273,8 +2320,8 @@ function sPlay(){
   if(UI.room&&ROOMS[UI.room])return sRoom();
   const g=byId(myGroup());
   return `<div class="page"><div class="play-grid"><section>
-    <div class="board-head"><span class="eyebrow">STEP 3 · 다 함께 방탈출</span><h1>🗺️ 탈출 지도</h1>
-    <p>${g.emoji} <b>${esc(g.name)}</b>, 다른 모둠의 방을 골라 자물쇠를 풀어 보세요! 맞히면 점수가 바로 점수판에 올라가요.<br>정답 기회: O/X 1번 · 객관식 2번 · 단답형·숫자 자물쇠 3번 · 힌트를 보면 점수 ${CFG.settings.hintRate}%</p></div>
+    <div class="board-head"><h1>🗺️ 탈출 지도</h1>
+    <p>${g.emoji} <b>${esc(g.name)}</b>, 다른 모둠의 방을 골라 자물쇠를 풀어 보세요! 맞히면 점수가 바로 점수판에 올라가요.<br>정답 기회는 O/X 1번, 객관식 2번, 단답형과 숫자 자물쇠 3번이에요. 힌트를 보면 점수가 ${CFG.settings.hintRate}%가 돼요.</p></div>
     <div class="rooms" data-live="rooms">${roomsInner()}</div>
   </section>${scoreboard()}</div></div>`;
 }
@@ -2303,11 +2350,11 @@ function sRoom(){
   const myStar=(MYRECS.find(x=>x.t==='star'&&x.r===gid)||{}).p||0;
   const okN=qs.filter(x=>qState(x)==='ok').length,gain=qs.reduce((a,x)=>{const r=myRec(x.id);return a+(r&&r.c?r.p:0)},0);
   return `<div class="page"><div class="play-grid"><section>
-    <div class="room-top"><button class="btn glass" onclick="backToBoard()">← 지도</button><div><div class="rt-name">${t.emoji} ${t.name} 방</div><div class="rt-by">${esc(roomTitle(gid))} · 출제 ${g.emoji} ${esc(g.name)}</div></div></div>
+    <div class="room-top"><button class="btn glass" onclick="backToBoard()">← 지도</button><div><div class="rt-name">${t.emoji} ${t.name} 방</div><div class="rt-by">${esc(roomTitle(gid))}  (출제 ${g.emoji} ${esc(g.name)})</div></div></div>
     ${lockTrack(qs,qi,qState,roomDone)}${stage}
   </section>${scoreboard()}</div>
   ${UI.escaped?`<div class="overlay"><div class="escape-card" style="--c:${t.color}"><div class="esc-stamp ${UI.stampAnim?'anim':''}">ESCAPED!</div>
-    <h2>${t.emoji} ${t.name} 방 탈출!</h2><p>자물쇠 ${qs.length}개 중 <b>${okN}개</b> 정답 · <b>+${gain}점</b><br>${g.emoji} ${esc(g.name)}의 문제는 어땠나요? 별점을 주면 출제 모둠이 보너스를 받아요.</p>
+    <h2>${t.emoji} ${t.name} 방 탈출!</h2><p>자물쇠 ${qs.length}개 중 <b>${okN}개</b> 정답, <b>+${gain}점</b><br>${g.emoji} ${esc(g.name)}의 문제는 어땠나요? 별점을 주면 출제 모둠이 보너스를 받아요.</p>
     ${starsHTML(gid,myStar)}<button class="btn gold big" onclick="backToBoard()">🗺️ 지도로 돌아가기</button></div></div>`:''}</div>`;
 }
 function nextOpen(){const qs=ROOMS[UI.room].questions;let i=qs.findIndex((x,k)=>k>UI.q&&qState(x)==='open');if(i<0)i=qs.findIndex(x=>qState(x)==='open');if(i<0){UI.escaped=true;UI.stampAnim=true;render();UI.stampAnim=false;return}UI.q=i;resetUI();enterQ()}
@@ -2331,19 +2378,19 @@ function renderAwards(){
   const slot=place=>{const x=list[place-1],g=x&&byId(x.id),shown=g&&r>=4-place;
     return `<div class="pod pod${place} ${shown&&UI.podPop===place?'pop':''}"><div class="pod-who">${shown?`<div class="pod-emoji">${g.emoji}</div><div class="pod-name">${esc(g.name)}</div><div class="pod-pts">${x.total}점</div>`:(g?`<div class="pod-q">?</div>`:'')}</div><div class="pod-block">${place}</div></div>`};
   const labels=['🥁 3위 발표','🥁 2위 발표','👑 1위 발표!','🎖️ 특별상 발표'];
-  const sp=specials(),gn=x=>{const g=byId(x.id);return g?`${g.emoji} ${esc(g.name)}`:''};
+  const sp=specials(),gn=x=>{const g=byId(x.id);return g?`<span style="white-space:nowrap">${g.emoji} ${esc(g.name)}</span>`:''};
   const spCard=(ico,name,desc,arr,key)=>`<div class="special"><div class="s-ico">${ico}</div><div><h4>${name}</h4><p>${desc}</p>
     <div class="who">${arr.length?arr.map(gn).join(', '):'해당 모둠 없음'}</div>
     ${arr.length?`<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${arr.map(x=>`<button class="btn ghost sm" onclick="openCert('${x.id}','${key}')">📜 ${esc(byId(x.id).name)} 상장</button>`).join('')}</div>`:''}</div></div>`;
   return `<div class="page">
-    <div class="awards-head"><span class="eyebrow">STEP 4 · 시상식</span><h1>🏆 ${esc(CFG.title||'지리 방탈출')} 시상식</h1><p>${esc(CFG.klass)} 모든 탐험대, 정말 수고했어요!</p></div>
+    <div class="awards-head"><h1>🏆 ${esc(CFG.title||'지리 방탈출')} 시상식</h1><p>${esc(CFG.klass)} 모든 탐험대, 정말 수고했어요!</p></div>
     ${isT()?`<div class="banner ${CFG.phase==='awards'?'live':'info'}"><div>${CFG.phase==='awards'?'📢<b>학생 화면에도 시상식이 열려 있어요</b><small>학생 기기에는 최종 순위가 바로 보여요.</small>':'🙈<b>학생 화면에는 아직 시상식이 닫혀 있어요</b><small>발표가 끝나면 학생 화면에도 열어 주세요. 학생 기기의 풀이도 함께 닫혀요.</small>'}</div><span class="sp"></span>
       ${CFG.phase==='awards'?`<button class="btn glass sm" onclick="setAwardsOpen(false)">닫기 (풀이 다시 열기)</button>`:`<button class="btn gold" onclick="setAwardsOpen(true)">📢 학생 화면에도 공개</button>`}<button class="btn glass sm" onclick="saveScoresNow()">📊 시트에 기록</button></div>`:''}
     <div class="podium">${slot(2)}${slot(1)}${slot(3)}</div>
     ${isT()?`<div class="reveal-bar">${r<4?`<button class="btn gold big" onclick="nextReveal()">${labels[r]}</button>`:''}${r>0?`<button class="btn glass" onclick="UI.awards=0;render()">↺ 처음부터 발표</button>`:''}${r<4?`<button class="btn glass" onclick="UI.awards=4;render()">⏭ 한 번에 보기</button>`:''}</div>`:''}
     ${r>=4?`<div class="specials">${spCard('🧠','최고 출제왕상','다른 모둠에게 가장 높은 별점을 받은 방',sp.maker,'maker')}${spCard('🔍','명탐정상','가장 많은 자물쇠를 푼 모둠',sp.detective,'detective')}${spCard('🌏','용감한 탐험가상','끝까지 함께한 모든 모둠',list,'explorer')}</div>
-    <section class="card"><h2>📊 최종 점수표</h2><div class="tbl-wrap"><table class="rank"><thead><tr><th>순위</th><th>모둠</th><th>담당</th><th>푼 자물쇠</th><th>정답 점수</th><th>받은 별점</th><th>조정</th><th>합계</th><th></th></tr></thead><tbody>
-      ${list.map(x=>{const g=byId(x.id);if(!g)return '';const t=targetOf(g);return `<tr><td class="total">${x.rank}</td><td><b>${g.emoji} ${esc(g.name)}</b></td><td>${t.emoji} ${t.name}</td><td>${x.correct}개</td><td>${x.ans}</td><td>${x.stars?`★${x.stars} (+${x.star})`:'-'}</td><td>${x.adj?(x.adj>0?'+':'')+x.adj:'-'}</td><td class="total">${x.total}</td><td><button class="btn ghost sm" onclick="openCert('${x.id}')">📜 상장</button></td></tr>`}).join('')}
+    <section class="card"><h2>📊 최종 점수표</h2><div class="tbl-wrap"><table class="rank"><thead><tr><th>순위</th><th>모둠</th><th>주제</th><th>푼 자물쇠</th><th>정답 점수</th><th>받은 별점</th><th>조정</th><th>합계</th><th></th></tr></thead><tbody>
+      ${list.map(x=>{const g=byId(x.id);if(!g)return '';const t=targetOf(g);return `<tr><td class="total rk">${x.rank}</td><td class="nm"><b>${g.emoji} ${esc(g.name)}</b></td><td class="tp">${t.emoji} ${t.name}</td><td class="dt" data-l="푼 자물쇠">${x.correct}개</td><td class="dt" data-l="정답 점수">${x.ans}</td><td class="dt" data-l="별점">${x.stars?`★${x.stars} (+${x.star})`:'-'}</td><td class="dt" data-l="조정">${x.adj?(x.adj>0?'+':'')+x.adj:'-'}</td><td class="total sum">${x.total}<small>점</small></td><td class="mob">${t.emoji} ${t.name}<span>푼 자물쇠 <b>${x.correct}</b></span><span>정답 <b>${x.ans}</b></span>${x.stars?`<span>별점 <b>★${x.stars}</b></span>`:''}${x.adj?`<span>조정 <b>${(x.adj>0?'+':'')+x.adj}</b></span>`:''}</td><td class="ct"><button class="btn ghost sm" onclick="openCert('${x.id}')">📜 상장</button></td></tr>`}).join('')}
     </tbody></table></div></section>`:''}</div>`;
 }
 function nextReveal(){let r=UI.awards+1;while(r<=3&&!SCORES[3-r])r++;UI.awards=r;UI.podPop=4-r;render();UI.podPop=0;if(r===3){sfx.fanfare();confetti(260)}else{sfx.right();if(r>3)confetti(120)}}
