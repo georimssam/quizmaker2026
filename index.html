@@ -177,6 +177,12 @@ textarea.inp{resize:vertical;min-height:72px;line-height:1.55}
 .hero h1{font-size:clamp(36px,5vw,58px);line-height:1.08;margin:10px 0 16px}
 .hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--gold),#ff8fab);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hero p{font-size:16.5px;line-height:1.7;color:rgba(255,255,255,.78);max-width:640px;margin:0}
+/* 제목과 설명: 정해 둔 자리에서만 줄을 바꾸고, 화면 폭에 맞춰 글자 크기가 줄어들어요 */
+.hero>div:first-child{container-type:inline-size;min-width:0}
+.hero .ln{display:block;white-space:nowrap}
+.hero h1 .ln{font-size:clamp(24px,12cqw,58px)}
+.hero p.hero-desc{max-width:none}
+.hero p.hero-desc .ln{font-size:clamp(10px,4.6cqw,17px)}
 .flow{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
 .flow span{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-size:14px;font-weight:700}
 .flow span b{color:var(--gold);font-family:var(--display);font-weight:400;font-size:16px}
@@ -544,6 +550,8 @@ table.rank td.sum small{font-family:var(--body);font-size:12px;margin-left:2px;c
 
 /* ---------- responsive ---------- */
 @media (max-width:1050px){
+  .hero{grid-template-columns:minmax(0,1fr)}
+  .hero-art{display:none}
   .make-grid,.play-grid{grid-template-columns:minmax(0,1fr)}
   .make-grid>*,.play-grid>*{min-width:0}
   .make-grid.stu .side{order:2}
@@ -560,7 +568,8 @@ table.rank td.sum small{font-family:var(--body);font-size:12px;margin-left:2px;c
   .page{padding:18px 16px 60px}
   .hero,.role-grid{grid-template-columns:1fr}
   .hero-art{display:none}
-  .setup-grid{grid-template-columns:1fr}
+  .setup-grid{grid-template-columns:minmax(0,1fr)}
+  .setup-grid>*{min-width:0}
   .span2{grid-column:auto}
   .two-col,.modes,.room-meta .two,.grid-2,.opts,.ans-mc{grid-template-columns:1fr}
   .add-row{grid-template-columns:1fr 1fr}
@@ -1674,14 +1683,14 @@ function joinCard(){
   if(!CFG.joinCode)return '';
   return `<section class="join-card"><div class="qr" id="qr-small"></div>
     <div class="jc-text"><span class="eyebrow">🧑‍🎓 학생 입장</span><div class="jc-code">${CFG.joinCode.split('').join(' ')}</div>
-      <p>① 태블릿 카메라로 QR 찍기 → ② <b>🧑‍🎓 학생</b> 누르기 → ③ 입장 코드 입력</p>
+      <p>① QR 찍기 → ② <b>🧑‍🎓 학생</b> 누르기 → ③ 입장 코드 입력</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn gold" onclick="openJoinScreen()">⛶ 칠판에 크게 띄우기</button><button class="btn glass sm" onclick="regenCode()">🔄 코드 바꾸기</button>${joinUrl()?`<button class="btn glass sm" onclick="copyJoinUrl()">🔗 주소 복사</button>`:''}</div></div></section>`;
 }
 function openJoinScreen(){
   $('#bt-title').textContent=(CFG.klass?CFG.klass+'  ':'')+(CFG.title||'지리 방탈출');
   const box=$('#bigtimer');box.classList.add('join-mode');
   $('#bt-groups').innerHTML=`<div class="join-big"><div class="qr-big" id="qr-big"></div><div><div class="jb-label">입장 코드</div><div class="jb-code">${CFG.joinCode}</div>
-    <ol class="jb-steps"><li>카메라로 QR 코드 찍기</li><li><b>🧑‍🎓 학생</b> 누르기</li><li>입장 코드 <b>${CFG.joinCode}</b> 입력</li></ol></div></div>`;
+    <ol class="jb-steps"><li>QR 찍기</li><li><b>🧑‍🎓 학생</b> 누르기</li><li>입장 코드 <b>${CFG.joinCode}</b> 입력</li></ol></div></div>`;
   $('#bt-ctrl').innerHTML=`<button class="btn glass big" onclick="closeBigTimer()">✕ 닫기</button>`;
   box.hidden=false;drawQR($('#qr-big'),300);
 }
@@ -1795,9 +1804,9 @@ function tSetup(){
   const st=CFG.settings,T=targets(CFG.mode);
   return `<div class="page">
   <section class="hero"><div>
-      <h1>오늘의 <em>지리 방탈출</em>을<br>함께 정해요</h1>
-      <p>출제 방식과 모둠, 규칙을 정하면 <b>바로 구글 시트에 저장</b>되고, 학생 기기에서 모둠을 고를 수 있어요. 준비가 끝나면 아래 <b>출제 시작</b>을 눌러 주세요.</p>
-      <div class="flow"><span><b>1</b> 준비</span><span><b>2</b> 출제 ${st.makeMin}분</span><span><b>3</b> 방탈출</span><span><b>4</b> 시상식 🏆</span></div>
+      <h1><span class="ln">오늘의 <em>지리 방탈출</em></span><span class="ln">함께 만들어요</span></h1>
+      <p class="hero-desc"><span class="ln">출제 방식과 학급 개설, 모둠과 주제, 규칙 설정 등</span><span class="ln">준비가 끝나면 아래 <b>출제 시작</b>을 눌러주세요.</span></p>
+      <div class="flow"><span><b>1</b> 준비</span><span><b>2</b> 출제</span><span><b>3</b> 방탈출</span><span><b>4</b> 시상식 🏆</span></div>
     </div><div class="hero-art"><div class="orbit"><span>🔐</span><span>🗝️</span><span>🧭</span></div><div class="globe">🌏</div></div></section>
   ${joinCard()}
   ${CFG.phase!=='setup'?`<div class="banner info"><div>ℹ️<b>지금 단계: ${PHASE_KO[CFG.phase]}</b><small>모둠 이름이나 주제를 바꾸면 학생 화면에도 바로 반영돼요. 모둠 수를 줄이면 그 모둠의 방은 보이지 않게 돼요.</small></div></div>`:''}
