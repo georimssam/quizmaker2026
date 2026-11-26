@@ -188,12 +188,14 @@ textarea.inp{resize:vertical;min-height:72px;line-height:1.55}
 .counter{display:inline-flex;align-items:center;gap:4px;background:var(--paper2);border-radius:12px;padding:4px;font-family:var(--body)}
 .counter button{width:32px;height:32px;border:0;border-radius:9px;background:#fff;font-weight:900;font-size:16px}
 .counter b{min-width:64px;text-align:center;font-size:15px}
-.groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
-.g-row{display:flex;align-items:center;gap:10px;padding:10px;border-radius:18px;background:#fff;border:2px solid var(--line);border-left:8px solid var(--gc)}
-.g-emoji{width:46px;height:46px;flex:none;border-radius:14px;border:0;background:color-mix(in srgb,var(--gc) 18%,#fff);font-size:26px}
-.g-row .inp{padding:9px 11px;border-radius:11px}
-.g-row .g-name{flex:1;min-width:0;font-weight:700}
-.g-row select{width:136px;flex:none}
+.groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.g-row{display:grid;grid-template-columns:54px minmax(0,1fr) auto;grid-template-rows:auto auto;gap:8px 10px;align-items:center;padding:12px 12px 12px 10px;border-radius:18px;background:#fff;border:2px solid var(--line);border-left:8px solid var(--gc);min-width:0}
+.g-emoji{grid-row:1 / span 2;width:54px;height:54px;border-radius:16px;border:0;background:color-mix(in srgb,var(--gc) 18%,#fff);font-size:30px;align-self:center}
+.g-emoji:hover{transform:rotate(-8deg)}
+.g-row .inp{padding:8px 11px;border-radius:11px;width:100%;min-width:0}
+.g-row .g-name{grid-column:2;font-weight:700;font-size:16px}
+.g-row .pin-badge{grid-column:3;grid-row:1}
+.g-row .g-target{grid-column:2 / span 2;grid-row:2;font-size:14px;background:var(--paper)}
 .settings{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
 .set{background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px 14px}
 .set label{font-size:13px;font-weight:700;color:var(--muted);display:block}
@@ -224,8 +226,20 @@ textarea.inp{resize:vertical;min-height:72px;line-height:1.55}
 .timer-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:10px;width:230px}
 .timer-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--mint),var(--gold));border-radius:99px;transition:width .3s linear}
 .timer-bar.urgent i{background:var(--coral)}
-.timer-ctrl{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.timer-ctrl .btn.wide{grid-column:span 3}
+.timer-ctrl{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:250px}
+.timer-ctrl .btn.wide,.timer-ctrl .t-step{grid-column:span 2}
+.t-step{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:4px;color:#fff}
+.t-step .btn{flex:1 1 0;min-width:40px;font-size:18px;padding:5px 10px}
+.t-step input{flex:0 0 72px;min-width:0;width:72px;text-align:center;border:0;border-radius:9px;padding:6px 4px;font-family:var(--display);font-size:20px;background:rgba(255,255,255,.92);color:var(--ink);outline:none}
+.t-step input:focus{box-shadow:0 0 0 3px var(--gold)}
+.t-step span{font-weight:700;font-size:14px;opacity:.85}
+.t-step.big{padding:6px 8px;border-radius:16px}
+.t-step.big .btn{min-width:56px;font-size:24px;padding:10px 14px}
+.t-step.big input{width:90px;font-size:30px;flex:0 0 90px}
+.t-step.big .btn{flex:none}
+.t-step.light .btn{flex:none}
+.t-step.light{background:var(--paper2);border-color:var(--line);color:var(--ink)}
+.t-step.light input{width:64px;flex:none;background:#fff}
 @keyframes pulse{50%{opacity:.55}}
 .make-grid{display:grid;grid-template-columns:290px 1fr;gap:22px;align-items:start}
 .side{position:sticky;top:90px;display:flex;flex-direction:column;gap:14px}
@@ -418,6 +432,11 @@ textarea.inp{resize:vertical;min-height:72px;line-height:1.55}
 .stars{display:flex;justify-content:center;gap:6px;margin:14px 0 22px}
 .stars button{border:0;background:transparent;font-size:46px;color:#e5dccb;transition:.12s;line-height:1;padding:0 2px}
 .stars button.on{color:var(--gold);text-shadow:0 4px 12px rgba(255,159,28,.45)}
+.stars button{transition:transform .08s,color .08s}
+.stars button:active{transform:scale(.9)}
+.rate-msg{margin:-12px 0 18px;font-size:14px;font-weight:700;color:var(--muted);min-height:20px}
+.credit{margin-top:26px;font-size:13.5px;color:rgba(255,255,255,.6)}
+.credit b{color:var(--gold);font-weight:900}
 .modal{position:fixed;inset:0;z-index:70;background:rgba(6,12,28,.7);backdrop-filter:blur(6px);display:grid;place-items:center;padding:20px}
 .modal-card{background:var(--paper);border-radius:26px;padding:28px;max-width:560px;width:100%;max-height:90vh;overflow:auto;position:relative;animation:pop .25s}
 .modal-card.wide{max-width:860px}
@@ -1228,6 +1247,11 @@ const byId=id=>CFG&&CFG.groups.find(g=>g.id===id);
 const isT=()=>ROLE==='teacher';
 const phase=()=>CFG?CFG.phase:'setup';
 const phaseAtLeast=p=>CFG&&['setup','make','play','awards'].indexOf(CFG.phase)>=['setup','make','play','awards'].indexOf(p);
+/** 받침에 맞는 조사 고르기: josa('1학년 5반','을','를') → '을' */
+function josa(word,withB,without){const s=String(word||'').trim();if(!s)return without;const ch=s[s.length-1],c=ch.charCodeAt(0);
+  if(c>=0xAC00&&c<=0xD7A3)return (c-0xAC00)%28?withB:without;
+  if(/[0-9]/.test(ch))return '013678'.includes(ch)?withB:without;   // 영·일·삼·육·칠·팔은 받침 있음
+  return /[lmnr]/i.test(ch)?withB:without}
 function norm(s){return String(s??'').toLowerCase().replace(/[\s.,·\-_'"()!?~]/g,'')}
 function oxNorm(s){const v=String(s??'').trim().toUpperCase();if(['O','ㅇ','○','◯','TRUE','참','맞다','맞음'].includes(v))return 'O';if(['X','ㅌ','×','✕','✖','FALSE','거짓','틀리다','틀림'].includes(v))return 'X';return v}
 
@@ -1488,7 +1512,8 @@ function renderRole(){
     <div class="role-grid">
       <button class="role-card s" onclick="chooseStudent()"><span class="ico">🧑‍🎓</span><b>학생</b><small>우리 모둠의 탈출 방을 만들고<br>다른 모둠의 방을 풀어요</small></button>
       <button class="role-card t" onclick="askTeacher()"><span class="tag">🔐 비밀번호</span><span class="ico">👩‍🏫</span><b>선생님</b><small>게임 설정 · 타이머 · 출제 마감<br>점수판과 시상식을 진행해요</small></button>
-    </div></div></div>`;
+    </div>
+    <p class="credit">🗺️ 만든 사람 · 지리 교사 <b>이해림</b> 선생님</p></div></div>`;
 }
 function chooseStudent(){ROLE='student';lsSet('gem.role','student');VIEW='setup';lsSet('gem.view','setup');firstLoad=true;render();refresh();startPolling()}
 function renderJoin(){
@@ -1611,8 +1636,10 @@ function tSetup(){
     <section class="card"><h2>📝 기본 정보</h2>
       <label class="lb">게임 이름</label><input class="inp" value="${esc(CFG.title)}" oninput="CFG.title=this.value;saveCfg()">
       <div class="two-col">
-        <div><label class="lb">학급 (점수판 탭 이름)</label><input class="inp" placeholder="예: 1학년 3반" value="${esc(CFG.klass)}" oninput="CFG.klass=this.value;saveCfg()"></div>
-        <div><label class="lb">선생님 이름 (상장용)</label><input class="inp" placeholder="예: 김지리" value="${esc(CFG.teacher)}" oninput="CFG.teacher=this.value;saveCfg()"></div>
+        <div><label class="lb">학급 (점수판 탭 이름)</label><input class="inp" placeholder="예: 1학년 5반" value="${esc(CFG.klass)}" oninput="CFG.klass=this.value;saveCfg()"></div>
+        <div><label class="lb">선생님 이름 (상장용)</label><input class="inp" placeholder="예: 이해림" value="${esc(CFG.teacher)}" oninput="CFG.teacher=this.value;saveCfg()"></div>
+      </div>
+      <p class="help">상장에는 “${esc(CFG.klass||'1학년 5반')}${josa(CFG.klass||'1학년 5반','을','를')} 아끼는 ${esc(CFG.teacher||'이해림')} 선생님”으로 들어가요.</p><div>
       </div></section>
     <section class="card"><h2>🧭 출제 방식</h2><div class="modes">
       <button class="mode ${CFG.mode==='continent'?'on':''}" onclick="setMode('continent')"><span class="m-ico">🌍</span><b>대륙별 문제</b><small>모둠마다 대륙 하나를 맡아 그 대륙의 기후·지형·문화를 문제로 만들어요.</small><div class="chips">${CONTINENTS.map(t=>`<span class="chip">${t.emoji} ${t.name}</span>`).join('')}</div></button>
@@ -1623,9 +1650,9 @@ function tSetup(){
       <button class="btn ghost sm" onclick="shuffleTargets()">🎲 랜덤 배정</button></h2>
       <div class="groups">${CFG.groups.map(g=>`<div class="g-row" style="--gc:${g.color}">
         <button class="g-emoji" onclick="cycleEmoji('${g.id}')" title="눌러서 바꾸기">${g.emoji}</button>
-        <input class="inp g-name" value="${esc(g.name)}" oninput="setG('${g.id}','name',this.value)">
-        <select class="inp" onchange="setG('${g.id}','target',this.value)">${T.map(t=>`<option value="${t.key}" ${t.key===g.target?'selected':''}>${t.emoji} ${t.name}</option>`).join('')}</select>
-        <span class="pin-badge" title="모둠 비밀번호">🔒 ${UI.showPins&&g.pin?g.pin:'••••'}</span></div>`).join('')}</div>
+        <input class="inp g-name" value="${esc(g.name)}" placeholder="모둠 이름" oninput="setG('${g.id}','name',this.value)" aria-label="모둠 이름">
+        <span class="pin-badge" title="모둠 비밀번호">🔒 ${UI.showPins&&g.pin?g.pin:'••••'}</span>
+        <select class="inp g-target" onchange="setG('${g.id}','target',this.value)" aria-label="담당">${T.map(t=>`<option value="${t.key}" ${t.key===g.target?'selected':''}>담당 · ${t.emoji} ${t.name}</option>`).join('')}</select></div>`).join('')}</div>
       <div class="pin-bar"><p class="help" style="margin:0">동물 아이콘을 누르면 바뀌어요. 학생들은 자기 모둠을 고른 뒤 <b>모둠 비밀번호</b>를 입력해야 들어갈 수 있어요.</p>
         <span class="sp"></span><button class="btn ghost sm" onclick="UI.showPins=!UI.showPins;render()">${UI.showPins?'🙈 비밀번호 숨기기':'👁 모둠 비밀번호 보기'}</button>
         <button class="btn ghost sm" onclick="openPins()">🖨️ 비밀번호 쪽지 인쇄</button></div></section>
@@ -1707,11 +1734,20 @@ setInterval(()=>{
   updateTimerDom();
 },250);
 function timeUp(){openModal(`<div class="timeup"><div class="t-ico">⏰</div><h3>문제 만들기 시간 끝!</h3><p>모둠마다 <b>📨 선생님께 전송</b>을 눌렀는지 확인해 주세요.<br>모두 보냈다면 출제를 마감하고 방탈출을 시작해요.</p>
-  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn ghost" onclick="tAdd(5);tToggle();closeModal()">+5분 연장</button><button class="btn gold" onclick="closeModal();closeBigTimer();closeMaking()">🔒 출제 마감하기</button></div></div>`)}
+  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><span class="t-step light"><input type="number" min="1" max="120" value="${tStep()}" data-tstep onchange="setTStep(this.value)"><span>분</span></span><button class="btn ghost" onclick="const m=readTStep();tAdd(m);tToggle();closeModal();toast('⏱ '+m+'분 연장했어요','good')">연장하고 다시 시작</button><button class="btn gold" onclick="closeModal();closeBigTimer();closeMaking()">🔒 출제 마감하기</button></div></div>`)}
 function openBigTimer(){if(!CFG)return;$('#bigtimer').classList.remove('join-mode');$('#bt-title').textContent=(CFG.title||'지리 방탈출')+' · 문제 만들기 시간';
   $('#bt-groups').innerHTML=CFG.groups.map(g=>{const s=STATUS[g.id]||{};return `<span>${g.emoji} ${esc(g.name)} · ${targetOf(g).emoji} ${targetOf(g).name} <b>${s.count||0}/${CFG.settings.goal}</b></span>`}).join('');
   renderBigCtrl();$('#bigtimer').hidden=false;updateTimerDom()}
-function renderBigCtrl(){$('#bt-ctrl').innerHTML=(isT()?`<button class="btn gold big" data-timer-toggle onclick="tToggle()">▶ 시작</button><button class="btn glass big" onclick="tAdd(5)">+5분</button>`:'')+`<button class="btn glass big" onclick="closeBigTimer()">✕ 닫기</button>`;updateTimerDom()}
+function renderBigCtrl(){$('#bt-ctrl').innerHTML=(isT()?`<button class="btn gold big" data-timer-toggle onclick="tToggle()">▶ 시작</button>${stepCtrl('big')}`:'')+`<button class="btn glass big" onclick="closeBigTimer()">✕ 닫기</button>`;updateTimerDom()}
+/* 시간 더하기·빼기: 선생님이 분을 입력하고 ＋/− */
+function tStep(){const v=parseInt(lsGet('gem.tstep'),10);return v>=1&&v<=120?v:5}
+function setTStep(v){v=Math.max(1,Math.min(120,parseInt(v,10)||1));lsSet('gem.tstep',String(v));document.querySelectorAll('[data-tstep]').forEach(i=>{if(i!==document.activeElement)i.value=v});return v}
+function readTStep(){const i=document.activeElement&&document.activeElement.matches&&document.activeElement.matches('[data-tstep]')?document.activeElement:document.querySelector('[data-tstep]');return setTStep(i?i.value:tStep())}
+function stepAdd(sign){const m=readTStep();tAdd(sign*m);toast(`⏱ ${sign>0?'＋':'−'} ${m}분`)}
+function stepCtrl(size){return `<div class="t-step ${size||''}" title="더하거나 뺄 시간(분)을 입력하세요">
+  <button class="btn glass ${size?'':'sm'}" onclick="stepAdd(-1)" aria-label="시간 빼기">−</button>
+  <input type="number" min="1" max="120" value="${tStep()}" data-tstep onchange="setTStep(this.value)" onkeydown="if(event.key==='Enter')stepAdd(1)" aria-label="분"><span>분</span>
+  <button class="btn glass ${size?'':'sm'}" onclick="stepAdd(1)" aria-label="시간 더하기">＋</button></div>`}
 function closeBigTimer(){$('#bigtimer').hidden=true}
 
 /* ================= 2. 문제 만들기 ================= */
@@ -1727,7 +1763,7 @@ function tMake(){
       ${CFG.joinCode?`<span class="code-chip" style="margin-top:10px" onclick="openJoinScreen()" title="학생 입장 안내 크게 보기">🔑 입장 코드 ${CFG.joinCode} · QR</span>`:''}</div>
     <div class="timer-box"><div class="timer-digits" data-timer>00:00</div><div class="timer-bar"><i data-timer-bar></i></div></div>
     <div class="timer-ctrl"><button class="btn gold wide" data-timer-toggle onclick="tToggle()">▶ 시작</button>
-      <button class="btn glass sm" onclick="tAdd(5)">+5분</button><button class="btn glass sm" onclick="tReset()">↺ 처음</button><button class="btn glass sm" onclick="openBigTimer()">⛶ 크게</button>
+      ${stepCtrl()}<button class="btn glass sm" onclick="tReset()">↺ 처음</button><button class="btn glass sm" onclick="openBigTimer()">⛶ 크게</button>
       ${CFG.phase==='make'?`<button class="btn coral wide" onclick="closeMaking()">🔒 출제 마감 · 풀이 시작</button>`:''}</div>
   </section>
   <div class="make-grid">
@@ -1972,7 +2008,24 @@ function introStage(gid,t,n){const g=byId(gid),r=ROOMS[gid];return `<div class="
   <span class="eyebrow">${t.name} 방 · 출제 ${g.emoji} ${esc(g.name)}</span><h2>${esc(roomTitle(gid))}</h2>
   <p class="story">${esc((r&&r.story)||`탐험대가 ${t.name}의 비밀 방에 갇혔다! 자물쇠 ${n}개를 모두 풀어야 탈출할 수 있다.`)}</p>
   <button class="btn gold big" onclick="startRoom()">🔦 입장하기</button></div>`}
-function starsHTML(gid,st){return `<div class="stars">${[1,2,3,4,5].map(n=>`<button class="${n<=st?'on':''}" onclick="rate('${gid}',${n})">★</button>`).join('')}</div>`}
+function starsHTML(gid,st){return `<div class="stars">${[1,2,3,4,5].map(n=>`<button class="${n<=st?'on':''}" onclick="rate('${gid}',${n})">★</button>`).join('')}</div><div class="rate-msg">${st?`✅ 별 ${st}개를 줬어요`:'별을 눌러 주세요'}</div>`}
+/* 별점: 누르는 즉시 화면에 반영하고, 저장은 뒤에서 (여러 번 눌러도 마지막 것만 저장) */
+let rateT=null;
+function paintStars(n,msg){document.querySelectorAll('.escape-card .stars button').forEach((b,i)=>b.classList.toggle('on',i<n));const m=document.querySelector('.escape-card .rate-msg');if(m)m.textContent=msg}
+function rate(gid,n){
+  MYRECS=MYRECS.filter(x=>!(x.t==='star'&&x.r===gid)).concat([{t:'star',s:myGroup(),r:gid,q:'',c:false,p:n,a:0,h:false,src:'student'}]);
+  sfx.click();paintStars(n,`⭐ 별 ${n}개 · 저장하는 중…`);
+  clearTimeout(rateT);rateT=setTimeout(()=>sendRate(gid,n,false),350);
+}
+function tRate(gid,n){
+  RECS=RECS.filter(x=>!(x.t==='star'&&x.s==='teacher'&&x.r===gid)).concat([{t:'star',s:'teacher',r:gid,q:'',c:false,p:n,a:0,h:false,src:'teacher'}]);
+  sfx.click();paintStars(n,`⭐ 별 ${n}개 · 저장하는 중…`);
+  clearTimeout(rateT);rateT=setTimeout(()=>sendRate(gid,n,true),350);
+}
+async function sendRate(gid,n,teacher){
+  try{await call('rate',teacher?{room:gid,stars:n}:{group:myGroup(),room:gid,stars:n});paintStars(n,`✅ 별 ${n}개를 줬어요`);refresh()}
+  catch(e){paintStars(n,'⚠️ 저장하지 못했어요. 다시 눌러 주세요');toast(e.message,'bad')}
+}
 function openRoom(gid){UI.room=gid;resetUI();UI.intro=true;const qs=ROOMS[gid].questions;const i=qs.findIndex(q=>qState(q)==='open');UI.q=i<0?0:i;qtStop();render();scrollTo({top:0})}
 function backToBoard(){UI.room=null;resetUI();qtStop();LAST_SIG='';render()}
 function startRoom(){UI.intro=false;sfx.click();enterQ()}
@@ -1985,7 +2038,6 @@ function enterQ(){
 function pick(v){if(UI.revealed||UI.busy)return;UI.sel=v;sfx.click();render()}
 function useHint(){UI.hint=true;if(!isT()){const k='gem.hints.'+CFG.gameId;const a=JSON.parse(lsGet(k)||'[]');a.push(ROOMS[UI.room].questions[UI.q].id);lsSet(k,JSON.stringify(a))}sfx.click();render()}
 function hintUsed(qid){try{return JSON.parse(lsGet('gem.hints.'+CFG.gameId)||'[]').includes(qid)}catch(e){return false}}
-async function rate(gid,n){try{await call('rate',{group:myGroup(),room:gid,stars:n});UI.myStars=n;sfx.click();await refresh();render()}catch(e){toast(e.message,'bad')}}
 function answerArea(q,R,rightAns){
   if(q.type==='mc')return `<div class="ans-mc">${q.options.map((o,k)=>String(o).trim()?`<button class="${UI.sel===k?'sel':''} ${R&&String(rightAns)===String(k)?'right':''} ${R&&UI.sel===k&&String(rightAns)!==String(k)?'wrong':''}" onclick="pick(${k})" ${R?'disabled':''}><i>${k+1}</i>${esc(o)}</button>`:'').join('')}</div>`;
   if(q.type==='ox')return `<div class="ans-ox">${['O','X'].map(v=>`<button class="${v.toLowerCase()} ${UI.sel===v?'sel':''} ${R&&rightAns===v?'right':''} ${R&&UI.sel===v&&rightAns!==v?'wrong':''}" onclick="pick('${v}')" ${R?'disabled':''}>${v}</button>`).join('')}</div>`;
@@ -2064,8 +2116,7 @@ function tRoom(){
     <p>출제한 <b>${g.emoji} ${esc(g.name)}</b>의 문제는 어땠나요? 선생님 별점도 별점 평균에 들어가요.</p>${tStarsHTML(gid,tStar)}
     <button class="btn gold big" onclick="backToBoard()">🗺️ 지도로 돌아가기</button></div></div>`:''}</div>`;
 }
-function tStarsHTML(gid,st){return `<div class="stars">${[1,2,3,4,5].map(n=>`<button class="${n<=st?'on':''}" onclick="tRate('${gid}',${n})">★</button>`).join('')}</div>`}
-async function tRate(gid,n){try{await call('rate',{room:gid,stars:n});await refresh();render();document.querySelectorAll('.esc-stamp').forEach(e=>e.classList.remove('anim'))}catch(e){toast(e.message,'bad')}}
+function tStarsHTML(gid,st){return `<div class="stars">${[1,2,3,4,5].map(n=>`<button class="${n<=st?'on':''}" onclick="tRate('${gid}',${n})">★</button>`).join('')}</div><div class="rate-msg">${st?`✅ 별 ${st}개를 줬어요`:'별을 눌러 주세요'}</div>`}
 function revealPanel(g,q,qi,n,pts){
   const alt=q.type==='short'?String(q.answer).split(/[,|]/).slice(1).map(s=>s.trim()).filter(Boolean):[];
   const device=RECS.filter(r=>r.t==='solve'&&r.q===q.id&&r.c&&r.src==='student').map(r=>r.s);
@@ -2191,7 +2242,7 @@ function openCert(gid,key){
     <div class="cert-no">제 ${d.getFullYear()}-${String(no).padStart(2,'0')} 호</div><h1>상 장</h1>
     <div class="cert-award">${A.icon} ${A.name}</div><div class="cert-to">${esc(CFG.klass)}<b>${g.emoji} ${esc(g.name)}</b></div>
     <p class="cert-body">위 모둠은 「${esc(CFG.title||'지리 방탈출')}」에서 <b>${t.name}</b> 탈출 방을 직접 설계하고, 친구들이 만든 방을 슬기롭게 풀어내며 ${A.why} 이 상장을 수여합니다.</p>
-    <div class="cert-date">${date}</div><div class="cert-sign">${esc(CFG.klass)} ${CFG.teacher?'담임 '+esc(CFG.teacher):'담임교사'}<span class="seal">지리<br>방탈출</span></div></div></div>
+    <div class="cert-date">${date}</div><div class="cert-sign">${CFG.klass?esc(CFG.klass)+josa(CFG.klass,'을','를')+' 아끼는 ':''}${esc(CFG.teacher||'지리')} 선생님<span class="seal">지리<br>방탈출</span></div></div></div>
     <div class="cert-actions"><div class="tabs">${keys.map(k=>`<button class="btn ${k===key?'gold':'ghost'} sm" onclick="openCert('${gid}','${k}')">${AWARDS[k].icon} ${AWARDS[k].name}</button>`).join('')}</div>
     ${isT()?`<button class="btn ink" onclick="window.print()">🖨️ 인쇄하기</button>`:''}</div>`,'wide');
 }
